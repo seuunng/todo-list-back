@@ -1,4 +1,4 @@
-package users;
+package com.seuunng.todolist.users;
 
 import java.sql.Blob;
 import java.util.Date;
@@ -24,20 +24,26 @@ public class UsersEntity {
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long no;
+	
 	@Column(nullable = false, unique = true)
 	private String id;
+	
     @Column(nullable = false)
 	private String nickname;
-    @Column(nullable = false)
-	private boolean is_simple;
+    
     @Column(nullable = false)
 	private String password;
-	private String simple_password;
-    @Lob
-	private Blob figierprint;
+    
+//    @Column(nullable = false)
+//	private boolean isSimple; //간편 로그인
+//	private String simplePassword; //간편 로그인 비밀번호
+//    @Lob
+//	private Blob figierprint; //지문 로그인
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
 	private Date created_at;
+    
     @PrePersist
     protected void onCreate() {
         if (created_at == null) {
