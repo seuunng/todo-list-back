@@ -35,8 +35,8 @@ public class TasksEntityTest {
         task.setStartDate(new Timestamp(System.currentTimeMillis()));
         task.setEndDate(new Timestamp(System.currentTimeMillis() + 100000));
         task.setPriority(TasksEntity.Priority.MEDIUM);
-        task.setIsRepeated(false);
-        task.setIsNotified(false);
+        task.setIsRepeated(TasksEntity.IsRepeated.NOREPEAT);
+        task.setIsNotified(TasksEntity.IsNotified.NOALRAM);
         task.setTaskStatus(TasksEntity.TaskStatus.PENDING);
         task.setUser(savedUser);
         
