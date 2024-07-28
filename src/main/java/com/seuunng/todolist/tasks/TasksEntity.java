@@ -2,9 +2,9 @@ package com.seuunng.todolist.tasks;
 
 import java.sql.Timestamp;
 
+import com.seuunng.todolist.lists.ListsEntity;
 import com.seuunng.todolist.users.UsersEntity;
 
-import jakarta.annotation.Priority;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -44,12 +44,18 @@ public class TasksEntity {
     @Column(name = "priority", columnDefinition = "ENUM('LOW', 'MEDIUM', 'HIGH') DEFAULT 'MEDIUM'")
     @Enumerated(EnumType.STRING)
     private Priority priority = Priority.MEDIUM;
+    
+    @Column(name = "date_status", columnDefinition = "ENUM('DATE', 'PERIOD') DEFAULT 'DATE'")
+    @Enumerated(EnumType.STRING)
+    private  DateStatus dateStatus = DateStatus.DATE;
+    
+    @Column(name = "is_repeated", columnDefinition = "ENUM('NOREPEAT', 'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY')")
+    @Enumerated(EnumType.STRING)
+    private IsRepeated isRepeated = IsRepeated.NOREPEAT;
 
-    @Column(name = "is_repeated")
-    private Boolean isRepeated;
-
-    @Column(name = "is_notified")
-    private Boolean isNotified;
+    @Column(name = "is_notified", columnDefinition = "ENUM('NOALRAM', 'ONTIME', 'FIVEMINS', 'THIRTYMINS', 'DAYEARLY')")
+    @Enumerated(EnumType.STRING)
+    private IsNotified isNotified=IsNotified.NOALRAM;
 
     @Column(name = "task_status", columnDefinition = "ENUM('COMPLETED', 'PENDING', 'OVERDUE', 'CANCELLED')")
     @Enumerated(EnumType.STRING)
@@ -62,9 +68,9 @@ public class TasksEntity {
 //    @JoinColumn(name = "secsion_no")
 //    private SectionEntity section;
 
-//    @ManyToOne
-//    @JoinColumn(name = "list_no")
-//    private ListEntity list;
+    @ManyToOne
+    @JoinColumn(name = "list_no")
+    private ListsEntity list;
 
     @ManyToOne
     @JoinColumn(name = "user_no")
@@ -77,15 +83,21 @@ public class TasksEntity {
         }
     }
     public enum Priority {
-        LOW,
-        MEDIUM,
-        HIGH
+        LOW, MEDIUM, HIGH
     }
 
     public enum TaskStatus {
-        COMPLETED,
-        PENDING,
-        OVERDUE,
-        CANCELLED
+        COMPLETED, PENDING, OVERDUE, CANCELLED
+    }
+    
+    public enum DateStatus {
+        DATE, PERIOD
+    }
+    public enum IsRepeated {
+    	NOREPEAT, DAILY, WEEKLY, MONTHLY, YEARLY
+    }
+    
+    public enum IsNotified {
+    	NOALRAM, ONTIME, FIVEMINS, THIRTYMINS, DAYEARLY
     }
 }
