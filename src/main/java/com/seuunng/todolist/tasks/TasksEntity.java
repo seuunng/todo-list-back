@@ -49,11 +49,13 @@ public class TasksEntity {
     @Enumerated(EnumType.STRING)
     private  DateStatus dateStatus = DateStatus.DATE;
     
-    @Column(name = "is_repeated")
-    private Boolean isRepeated;
+    @Column(name = "is_repeated", columnDefinition = "ENUM('NOREPEAT', 'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY')")
+    @Enumerated(EnumType.STRING)
+    private IsRepeated isRepeated = IsRepeated.NOREPEAT;
 
-    @Column(name = "is_notified")
-    private Boolean isNotified;
+    @Column(name = "is_notified", columnDefinition = "ENUM('NOALRAM', 'ONTIME', 'FIVEMINS', 'THIRTYMINS', 'DAYEARLY')")
+    @Enumerated(EnumType.STRING)
+    private IsNotified isNotified=IsNotified.NOALRAM;
 
     @Column(name = "task_status", columnDefinition = "ENUM('COMPLETED', 'PENDING', 'OVERDUE', 'CANCELLED')")
     @Enumerated(EnumType.STRING)
@@ -96,5 +98,11 @@ public class TasksEntity {
     public enum DateStatus {
         DATE,
         PERIOD
+    }
+    public enum IsRepeated {
+    NOREPEAT, DAILY, WEEKLY, MONTHLY, YEARLY
+    }
+    public enum IsNotified {
+    NOALRAM, ONTIME, FIVEMINS, THIRTYMINS, DAYEARLY
     }
 }
