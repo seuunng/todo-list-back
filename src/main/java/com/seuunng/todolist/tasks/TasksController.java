@@ -52,6 +52,7 @@ public class TasksController {
 			task.setStartDate(newTask.getStartDate());
 			task.setEndDate(newTask.getEndDate());
 			task.setPriority(newTask.getPriority());
+	        task.setDateStatus(newTask.getDateStatus());
 			task.setIsRepeated(newTask.getIsRepeated());
 			task.setIsNotified(newTask.getIsNotified());
 			task.setTaskStatus(newTask.getTaskStatus());
