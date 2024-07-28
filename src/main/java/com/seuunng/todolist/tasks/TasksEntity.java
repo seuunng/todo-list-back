@@ -44,7 +44,11 @@ public class TasksEntity {
     @Column(name = "priority", columnDefinition = "ENUM('LOW', 'MEDIUM', 'HIGH') DEFAULT 'MEDIUM'")
     @Enumerated(EnumType.STRING)
     private Priority priority = Priority.MEDIUM;
-
+    
+    @Column(name = "date_status", nullable = false, columnDefinition = "ENUM('DATE', 'PERIOD') DEFAULT 'DATE'")
+    @Enumerated(EnumType.STRING)
+    private  DateStatus dateStatus = DateStatus.DATE;
+    
     @Column(name = "is_repeated")
     private Boolean isRepeated;
 
@@ -87,5 +91,10 @@ public class TasksEntity {
         PENDING,
         OVERDUE,
         CANCELLED
+    }
+    
+    public enum DateStatus {
+        DATE,
+        PERIOD
     }
 }
