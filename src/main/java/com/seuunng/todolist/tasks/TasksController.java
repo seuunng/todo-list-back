@@ -56,6 +56,7 @@ public class TasksController {
 			task.setIsRepeated(newTask.getIsRepeated());
 			task.setIsNotified(newTask.getIsNotified());
 			task.setTaskStatus(newTask.getTaskStatus());
+			task.setList(newTask.getList());
 			
 			tasksRepository.save(task);
             System.out.println("Task updated: " + task);
