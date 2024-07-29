@@ -22,12 +22,14 @@ public class TasksEntityTest {
 	
 	@Test
     public void testCreateTask() {
-		UsersEntity user = new UsersEntity();
-        user.setId("Sample user");
-        user.setNickname("Test User");
-        user.setPassword("password");
-        
-        UsersEntity savedUser = usersRepository.save(user);
+		 String userId = "sampleUser";
+        UsersEntity user = usersRepository.findById(userId).orElseGet(() -> {
+            UsersEntity newUser = new UsersEntity();
+            newUser.setId(userId);
+            newUser.setNickname("Test User");
+            newUser.setPassword("password");
+            return usersRepository.save(newUser);
+        });
         
         TasksEntity task = new TasksEntity();
         task.setTitle("Sample today todo");
@@ -38,7 +40,7 @@ public class TasksEntityTest {
         task.setIsRepeated(TasksEntity.IsRepeated.NOREPEAT);
         task.setIsNotified(TasksEntity.IsNotified.NOALRAM);
         task.setTaskStatus(TasksEntity.TaskStatus.PENDING);
-        task.setUser(savedUser);
+        task.setUser(user);
         
         TasksEntity savedTask = tasksRepository.save(task);
 
@@ -49,6 +51,6 @@ public class TasksEntityTest {
         assertThat(savedTask.getContent()).isEqualTo("오늘 할 일 뭔가요?!");
         assertThat(savedTask.getPriority()).isEqualTo(TasksEntity.Priority.MEDIUM);
         assertThat(savedTask.getTaskStatus()).isEqualTo(TasksEntity.TaskStatus.PENDING);
-        assertThat(savedTask.getUser()).isEqualTo(savedUser);
+        assertThat(savedTask.getUser()).isEqualTo(user);
     }
 }
