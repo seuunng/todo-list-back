@@ -24,12 +24,12 @@ import com.seuunng.todolist.users.UsersRepository;
 @CrossOrigin(origins = "http://localhost:3000")
 public class ListsController {
 	@Autowired
-    private UsersRepository usersRepository;
+	private UsersRepository usersRepository;
 	@Autowired
-    private TasksRepository tasksRepository;
+	private TasksRepository tasksRepository;
 	@Autowired
-    private ListsRepository listsRepository;
-	
+	private ListsRepository listsRepository;
+
 	@GetMapping("/list")
 	public List<ListsEntity> getList() {
 		List<ListsEntity> lists = listsRepository.findAll();
@@ -42,34 +42,33 @@ public class ListsController {
 		ListsEntity list = listsRepository.save(newList);
 		return list;
 	}
-	
+
 	@PutMapping("/list/{no}")
-	public  ResponseEntity<ListsEntity> updateList(@PathVariable("no") Long no, @RequestBody ListsEntity newList) {
+	public ResponseEntity<ListsEntity> updateList(@PathVariable("no") Long no, @RequestBody ListsEntity newList) {
 		System.out.println("Received PUT request to update task with ID: " + no);
-        System.out.println("Request Body: " + newList);
-        
-		return listsRepository.findById(no)
-		.map(list ->{
+		System.out.println("Request Body: " + newList);
+
+		return listsRepository.findById(no).map(list -> {
 			list.setTitle(newList.getTitle());
 			list.setIcon(newList.getIcon());
 			list.setColor(newList.getColor());
 			list.setCreatedAt(newList.getCreatedAt());
 			list.setIsDeleted(newList.getIsDeleted());
-			
+
 			listsRepository.save(list);
-            System.out.println("Lists updated: " + list);
-			
-			return  ResponseEntity.ok(list);
-		})
-		.orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+			System.out.println("Lists updated: " + list);
+
+			return ResponseEntity.ok(list);
+		}).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
 	}
-	
+
 	@DeleteMapping("/list/{no}")
-	 public ResponseEntity<?> deleteList(@PathVariable("no") Long no) {
-		if (no == null) {
-           return ResponseEntity.badRequest().body("list no cannot be null");
-       }
-		listsRepository.deleteById(no);
-      return ResponseEntity.ok("list deleted successfully");
-  }
+	public ResponseEntity<?> deleteList(@PathVariable("no") Long no) {
+		try { tasksRepository.deleteByList(no);
+			  listsRepository.deleteById(no);
+			return ResponseEntity.ok().build();
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+		}
+	}
 }
