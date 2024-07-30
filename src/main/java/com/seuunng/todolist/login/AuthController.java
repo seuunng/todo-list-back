@@ -55,4 +55,14 @@ public class AuthController {
 		usersRepository.save(user);
 		return ResponseEntity.status(201).build();
 	}
+	 @PostMapping("/guest-login")
+	    public ResponseEntity<?> guestLogin() {
+	        UsernamePasswordAuthenticationToken token =
+	            new UsernamePasswordAuthenticationToken("guest@gmail.com", "guest123");
+
+	        Authentication authentication = authenticationManager.authenticate(token);
+	        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+	        return ResponseEntity.ok().build();
+	    }
 }

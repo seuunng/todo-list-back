@@ -37,10 +37,11 @@ public class SecurityConfig {
 		.formLogin(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(authorize -> authorize
         		.requestMatchers( "/auth/**","/", "/index.html", "/static/**", "/favicon.ico", "/manifest.json", "/logo192.png").permitAll() // 인증 없이 접근 가능한 엔드포인트
-                .anyRequest().authenticated() // 나머지는 인증 필요
+        		.requestMatchers("/admin/**").hasRole("ADMIN") 
+        		.anyRequest().authenticated() // 나머지는 인증 필요
         )
             .formLogin(form -> form
-                .loginPage("/logout") //loginPage() : 로그인 페이지 URL
+                .loginPage("/login") //loginPage() : 로그인 페이지 URL
                 .defaultSuccessUrl("/monthlyBoard", true) // defaultSuccessURL() : 로그인 성공시 이동 URL
                 .permitAll()//failureURL() : 로그인 실패시 URL
             )
@@ -48,7 +49,7 @@ public class SecurityConfig {
 					.logoutSuccessUrl("/logout")
 					.invalidateHttpSession(true))//validateHttpSession() : 로그인아웃 이후 전체 세션 삭제 여부
             .oauth2Login(oauth2 -> oauth2
-                .loginPage("/logout")
+                .loginPage("/mainAccountInfo")
                 .defaultSuccessUrl("/monthlyBoard", true) // OAuth2 로그인 후 리디렉션
             )
             .sessionManagement(session -> session //sessionManagement() : 세션 생성 및 사용 여부에 대한 설정

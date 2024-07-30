@@ -38,7 +38,6 @@ public class UsersEntity {
     
     @Column(nullable = false)
 	private String password;
-    
 //    @Column(nullable = false)
 //	private boolean isSimple; //간편 로그인
 //	private String simplePassword; //간편 로그인 비밀번호
@@ -56,6 +55,9 @@ public class UsersEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
 	private Date created_at;
+    
+    private String role;
+    
 
     public UsersEntity() {
     }
