@@ -28,19 +28,14 @@ public class HomeController {
         return "index";
     }
 
-    @GetMapping("/home")
-    public String home(Model model, @AuthenticationPrincipal OidcUser oidcUser) {
-        model.addAttribute("name", oidcUser.getFullName());
-        return "home";
-    }
-
-    @GetMapping("/login")
-    public String login() {
-        return "login";
-    }
-    @RequestMapping(value = "/{path:[^\\.]*}")
-    public String redirect() {
-        // 모든 경로를 index.html로 리다이렉트
-        return "forward:/index.html";
-    }
+//    @GetMapping("/home")
+//    public String home(Model model, @AuthenticationPrincipal OidcUser oidcUser) {
+//        model.addAttribute("name", oidcUser.getFullName());
+//        return "home";
+//    }
+//
+//    @GetMapping("/login")
+//    public String login() {
+//        return "login";
+//    }
 }

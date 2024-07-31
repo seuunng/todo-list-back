@@ -16,4 +16,12 @@ public class TasksService {
                  .map(taskEntity -> new Task(taskEntity.getNo(), taskEntity.getTitle(), taskEntity.getContent()))
                  .collect(Collectors.toList());
     }
+    
+
+    public List<TasksEntity> getTasksByUserId(Long id) {
+        System.out.println("Fetching tasks for user ID: " + id); 
+        List<TasksEntity> tasks = tasksRepository.findByUserId(id);
+        System.out.println("Tasks fetched: " + tasks); // 디버깅용 출력
+        return tasks;
+    }
 }

@@ -13,6 +13,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 
 import com.seuunng.todolist.users.UsersRepository;
 import com.seuunng.todolist.lists.ListsRepository;
+import com.seuunng.todolist.config.RedisConfig;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 public class TasksControllerTest {
@@ -26,12 +28,13 @@ public class TasksControllerTest {
     @MockBean
     private ListsRepository listsRepository;
     @MockBean
-    private TasksService tasksService;  // TasksService 추가
+    private TasksService tasksService; 
 
     @Test
-    @WithMockUser
+    @WithMockUser(username = "Guest", roles = {"ADMIN"})
     public void testGetList() throws Exception {
-        mockMvc.perform(get("/tasks/task"))
+        Long userId = 1L; // 예제 사용자 번호
+        mockMvc.perform(get("/tasks/task/{userId}", userId))
                 .andExpect(status().isOk())
                 .andExpect(result -> {
                     String responseString = result.getResponse().getContentAsString();

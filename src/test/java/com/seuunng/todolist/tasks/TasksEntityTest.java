@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.seuunng.todolist.lists.ListsEntity;
+import com.seuunng.todolist.lists.ListsRepository;
 import com.seuunng.todolist.users.UsersEntity;
 import com.seuunng.todolist.users.UsersRepository;
 
@@ -19,17 +21,25 @@ public class TasksEntityTest {
     private UsersRepository usersRepository;
 	@Autowired
     private TasksRepository tasksRepository;
+	@Autowired
+    private ListsRepository listsRepository;
 	
 	@Test
     public void testCreateTask() {
-		 String userId = "sampleUser";
-        UsersEntity user = usersRepository.findById(userId).orElseGet(() -> {
+
+		 String userEmail = "geust@example.com";
+        UsersEntity user = usersRepository.findByEmail(userEmail).orElseGet(() -> {
             UsersEntity newUser = new UsersEntity();
-            newUser.setId(userId);
-            newUser.setNickname("Test User");
+            newUser.setEmail("geust@example.com");
+            newUser.setNickname("Geust");
             newUser.setPassword("password");
             return usersRepository.save(newUser);
         });
+
+        // Create and save ListsEntity
+        ListsEntity listsEntity = new ListsEntity();
+        listsEntity.setTitle("List 1");
+        listsEntity = listsRepository.save(listsEntity);
         
         TasksEntity task = new TasksEntity();
         task.setTitle("Sample today todo");
@@ -41,6 +51,7 @@ public class TasksEntityTest {
         task.setIsNotified(TasksEntity.IsNotified.NOALRAM);
         task.setTaskStatus(TasksEntity.TaskStatus.PENDING);
         task.setUser(user);
+        task.setList(listsEntity);
         
         TasksEntity savedTask = tasksRepository.save(task);
 

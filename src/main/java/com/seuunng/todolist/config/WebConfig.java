@@ -19,8 +19,10 @@ public class WebConfig {
 
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/**").allowedOrigins("http://localhost:3000")
-						.allowedMethods("OPTIONS", "GET", "POST", "PUT", "DELETE").allowedHeaders("*")
+				registry.addMapping("/**")
+						.allowedOrigins("http://localhost:3000")
+						.allowedMethods("OPTIONS", "GET", "POST", "PUT", "DELETE")
+						.allowedHeaders("*")
 						.allowCredentials(true); // 쿠키를 허용하도록 설정
 			}
 		};

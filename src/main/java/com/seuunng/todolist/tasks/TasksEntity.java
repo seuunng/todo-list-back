@@ -70,11 +70,11 @@ public class TasksEntity {
 
     @ManyToOne
     @JoinColumn(name = "list_no")
-    private ListsEntity list;
+    private ListsEntity list = new ListsEntity();
 
     @ManyToOne
-    @JoinColumn(name = "user_no")
-    private UsersEntity user;
+    @JoinColumn(name = "user_id")
+    private UsersEntity user = new UsersEntity();
 
     @PrePersist
     protected void onCreate() {
