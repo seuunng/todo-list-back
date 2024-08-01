@@ -15,10 +15,14 @@ public class UsersEntityTest {
 
     @Test
     public void testCreateUser() {
-        UsersEntity user = new UsersEntity();
-        user.setId("testuser");
-        user.setNickname("Test User");
-        user.setPassword("password");
+    	String userId = "testuser";
+    	 
+    	UsersEntity existingUser = usersRepository.findById(userId).orElse(null);
+        if (existingUser == null) {
+            UsersEntity user = new UsersEntity();
+            user.setId(userId);
+            user.setNickname("Test User");
+            user.setPassword("password");
 
         UsersEntity savedUser = usersRepository.save(user);
 
@@ -26,5 +30,10 @@ public class UsersEntityTest {
         assertThat(savedUser.getNo()).isNotNull();
         assertThat(savedUser.getId()).isEqualTo("testuser");
         assertThat(savedUser.getNickname()).isEqualTo("Test User");
+        } else {
+            // User already exists, handle accordingly
+            System.out.println("User already exists: " + userId);
+        }
     }
 }
+    

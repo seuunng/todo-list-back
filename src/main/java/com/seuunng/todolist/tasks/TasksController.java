@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.seuunng.todolist.lists.ListsEntity;
+import com.seuunng.todolist.lists.ListsRepository;
 import com.seuunng.todolist.users.UsersRepository;
 
 @RestController
@@ -26,6 +29,8 @@ public class TasksController {
     private UsersRepository usersRepository;
 	@Autowired
     private TasksRepository tasksRepository;
+	@Autowired
+    private ListsRepository listsRepository;
 	
 	@GetMapping("/task")
 	public List<TasksEntity> getList() {
@@ -33,7 +38,19 @@ public class TasksController {
 		System.out.println(tasks);
 		return tasks;
 	}
-
+	 @GetMapping("/byList")
+	  public ResponseEntity<List<TasksEntity>> getTasksByListId(@RequestParam("listId") Long listId) {
+		 try {
+	            ListsEntity list = listsRepository.findById(listId)
+	                .orElseThrow(() -> new ResourceNotFoundException("List not found"));
+	            
+	            List<TasksEntity> tasks = tasksRepository.findByList(list);
+	            return ResponseEntity.ok(tasks);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+	        }
+	    }
 	@PostMapping("/task")
 	public TasksEntity addTask(@RequestBody TasksEntity newTask) {
 		TasksEntity task = tasksRepository.save(newTask);
@@ -56,7 +73,11 @@ public class TasksController {
 			task.setIsRepeated(newTask.getIsRepeated());
 			task.setIsNotified(newTask.getIsNotified());
 			task.setTaskStatus(newTask.getTaskStatus());
-			task.setList(newTask.getList());
+			if (newTask.getList() != null) {
+                ListsEntity list = listsRepository.findById(newTask.getList().getNo())
+                    .orElseThrow(() -> new ResourceNotFoundException("List not found"));
+                task.setList(list);
+            }
 			
 			tasksRepository.save(task);
             System.out.println("Task updated: " + task);
