@@ -20,10 +20,10 @@ public class WebConfig {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
 				registry.addMapping("/**")
+						.allowCredentials(true)
 						.allowedOrigins("http://localhost:3000")
 						.allowedMethods("OPTIONS", "GET", "POST", "PUT", "DELETE")
-						.allowedHeaders("*")
-						.allowCredentials(true); // 쿠키를 허용하도록 설정
+						.allowedHeaders("*"); // 쿠키를 허용하도록 설정
 			}
 		};
 	}

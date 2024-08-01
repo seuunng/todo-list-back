@@ -13,7 +13,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 
 import com.seuunng.todolist.users.UsersRepository;
 import com.seuunng.todolist.lists.ListsRepository;
-import com.seuunng.todolist.config.RedisConfig;
 
 @SpringBootTest
 @AutoConfigureMockMvc

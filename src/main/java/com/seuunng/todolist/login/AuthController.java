@@ -1,8 +1,10 @@
 package com.seuunng.todolist.login;
 
-
+import javax.crypto.SecretKey;
+import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -10,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,48 +21,59 @@ import org.springframework.web.bind.annotation.RestController;
 import com.seuunng.todolist.users.UsersEntity;
 import com.seuunng.todolist.users.UsersRepository;
 
-import jakarta.servlet.http.Cookie;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
+
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(origins = "http://localhost:3000")
+@Slf4j
 public class AuthController {
+    
 	@Autowired
 	private AuthenticationManager authenticationManager;
 	@Autowired
 	private UsersRepository usersRepository;
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-
+    
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest,  HttpServletRequest request, HttpServletResponse response) {
 		try {
-			UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-					loginRequest.getEmail(),
-					loginRequest.getPassword());
+	        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+	                loginRequest.getEmail(),
+	                loginRequest.getPassword()
+	        );
 
-			Authentication authentication = authenticationManager.authenticate(token);
-			SecurityContextHolder.getContext().setAuthentication(authentication);
+	        Authentication authentication = authenticationManager.authenticate(token);
+	        
+	        SecurityContextHolder.getContext().setAuthentication(authentication);
+	        
+            Authentication authCheck = SecurityContextHolder.getContext().getAuthentication();
 
-			 CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-			 UsersEntity user = userDetails.getUser();
-		        
-			// 세션 설정 확인
-//			 HttpSession session = request.getSession(true);
-//	            Cookie cookie = new Cookie("JSESSIONID", session.getId());
-//	            cookie.setHttpOnly(true); // HttpOnly 설정
-//	            cookie.setSecure(false); // HTTPS 환경에서는 true로 설정
-//	            cookie.setPath("/");
-//	            response.addCookie(cookie);
-//		        
-		        return ResponseEntity.ok(user);
+	        AccountContext accountContext = (AccountContext) authentication.getPrincipal();
+
+            System.out.println("1 Authentication Principal: " + accountContext);
+            
+	        UsersEntity user = accountContext.getAccount();
+
+            System.out.println("2 Authentication Principal: " + user);
+            
+//	        request.getSession().setAttribute("user", user);
+	        
+	        return ResponseEntity.ok(new AuthResponse(user)); //
+	        
 		} catch (Exception e) {
-			return ResponseEntity.status(401).body("로그인 실패: " + e.getMessage());
-		}
+            System.err.println("Login failed for email: " + loginRequest.getEmail());
+            e.printStackTrace();
+            return ResponseEntity.status(401).body("로그인 실패: " + e.getMessage());
+        }
 	}
-
+	
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@RequestBody SignUpRequest signupRequest) {
 		if (usersRepository.existsByEmail(signupRequest.getEmail())) {

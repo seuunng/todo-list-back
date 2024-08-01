@@ -1,8 +1,12 @@
 package com.seuunng.todolist.users;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,6 +22,7 @@ import jakarta.persistence.TemporalType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
@@ -25,8 +30,9 @@ import lombok.Setter;
 @Setter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "users")
-public class UsersEntity {
+public class UsersEntity implements UserDetails {
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -56,11 +62,10 @@ public class UsersEntity {
     @Temporal(TemporalType.TIMESTAMP)
 	private Date created_at;
     
-    private String role;
-    
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private Role role = Role.ROLE_USER;
 
-    public UsersEntity() {
-    }
     
     @PrePersist
     protected void onCreate() {
@@ -71,4 +76,36 @@ public class UsersEntity {
             nickname = email; 
         }
     }
+    // 권한 목록 반환
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(new SimpleGrantedAuthority(this.role.name()));
+    }
+
+    // 이메일을 사용자 이름으로 반환
+    @Override
+    public String getUsername() {
+        return email;
+    }
+    // 계정 만료 여부
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+    // 계정 잠금 여부
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+ // 자격 증명 만료 여부
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
 }
