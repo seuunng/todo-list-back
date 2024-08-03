@@ -51,7 +51,7 @@ public class UsersEntity implements UserDetails {
 	
 	private String nickname;
     
-    @Column(nullable = false)
+    @Column(nullable = true)
 	private String password;
     
 //    @Column(nullable = false)
@@ -87,6 +87,9 @@ public class UsersEntity implements UserDetails {
         if (nickname == null || nickname.isEmpty()) {
             nickname = email; 
         }
+    }
+    public List<String> getRoles() {
+        return Collections.singletonList(role.name());
     }
     // 권한 목록 반환
     @Override

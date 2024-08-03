@@ -88,11 +88,10 @@ public class SecurityConfig {
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				.authorizeHttpRequests(authorize -> authorize
 						// 인증 없이 접근 가능한 엔드포인트
-						.requestMatchers("/mainAccountInfo").permitAll()
-						.requestMatchers("/auth/**", "/api/session", "/index.html", "/static/**", "/favicon.ico",
-								"/manifest.json").permitAll()
+						.requestMatchers("/", "/auth/**", "/oauth2/**", "/api/session").permitAll()
+						.requestMatchers( "/index.html", "/static/**", "/favicon.ico","/manifest.json").permitAll()
 						// 인증이 필요한 엔드포인트
-						.requestMatchers("/tasks/**", "/lists/**").hasRole("USER")
+						.requestMatchers("/tasks/**", "/lists/**","/monthlyBoard").hasRole("USER")
 						.anyRequest().authenticated() // 나머지는 인증 필요
 				).exceptionHandling(exceptionHandling -> exceptionHandling
 						.authenticationEntryPoint((request, response, authException) -> {
@@ -103,14 +102,11 @@ public class SecurityConfig {
 				.formLogin(form -> form.loginPage("/login").successHandler(authSuccessHandler)
 						.failureHandler(authenticationFailureHandler()).defaultSuccessUrl("/monthlyBoard", true)
 						.permitAll())
-				.oauth2Login(oauth2 -> oauth2.loginPage("/mainAccountInfo").defaultSuccessUrl("/monthlyBoard", true) // OAuth2
-																														// 로그인
-																														// 후
-																														// 리디렉션
-				).logout(logout -> logout.logoutSuccessUrl("/mainAccountInfo").invalidateHttpSession(true))// validateHttpSession()
-																											// : 로그인아웃
-																											// 이후 전체 세션
-																											// 삭제 여부
+				.oauth2Login(oauth2 -> oauth2.loginPage("/mainAccountInfo")
+						.defaultSuccessUrl("/monthlyBoard", true))
+				.logout(logout -> logout
+						.logoutSuccessUrl("/mainAccountInfo")
+						.invalidateHttpSession(true))
 				.sessionManagement(session -> session // sessionManagement() : 세션 생성 및 사용 여부에 대한 설정
 						.sessionCreationPolicy(SessionCreationPolicy.STATELESS).maximumSessions(1) // 한 번에 하나의 세션만 허용
 						.maxSessionsPreventsLogin(true).expiredUrl("/login?expired=true"))
