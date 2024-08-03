@@ -74,7 +74,11 @@ public class TasksEntity {
     @JoinColumn(name = "list_no")
     @JsonBackReference
     private ListsEntity list;
-
+    
+    public Long getListNo() {
+        return list != null ? list.getNo() : null;
+    }
+    
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonIgnore

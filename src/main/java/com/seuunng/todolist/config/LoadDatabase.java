@@ -19,11 +19,11 @@ public class LoadDatabase {
     @Bean
     CommandLineRunner initDatabase(UsersRepository usersRepository, ListsRepository listsRepository, PasswordEncoder passwordEncoder) {
     	return args -> {
-            if (!usersRepository.existsByEmail("11@11")) {
+            if (!usersRepository.existsByEmail("guest@gmail.com")) {
                 UsersEntity user = new UsersEntity();
-                user.setEmail("11@11");
-                user.setPassword(passwordEncoder.encode("1111")); // 암호는 실제 사용 시 강력하게 설정하세요.
-                user.setNickname("승희네");
+                user.setEmail("guest@gmail.com");
+                user.setPassword(passwordEncoder.encode("guest123")); // 암호는 실제 사용 시 강력하게 설정하세요.
+                user.setNickname("게스트");
                 usersRepository.save(user);
 
                 ListsEntity defaultList = new ListsEntity();

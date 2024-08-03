@@ -41,94 +41,86 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @EnableWebSecurity
 @Slf4j
-public class SecurityConfig  {
+public class SecurityConfig {
 
 	private final CustomUserDetailsService userDetailsService;
-    private final ObjectMapper objectMapper;
-    private final AuthSuccessHandler authSuccessHandler;
+	private final ObjectMapper objectMapper;
+	private final AuthSuccessHandler authSuccessHandler;
 
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+	@Autowired
+	private JwtTokenProvider jwtTokenProvider;
 
 //    @Autowired
 //    private UserDetailsService userDetailsService;
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
-    }
+	@Bean
+	public JwtAuthenticationFilter jwtAuthenticationFilter() {
+		return new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
+	}
 //    @Autowired
 //    private DataSource dataSource;
-    
-    public SecurityConfig(CustomUserDetailsService userDetailsService, ObjectMapper objectMapper, AuthSuccessHandler authSuccessHandler) {
-        
-    	this.userDetailsService = userDetailsService;
-        this.objectMapper = objectMapper;
-        this.authSuccessHandler = authSuccessHandler;
-    }
-    
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowCredentials(true);
-        config.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-        config.setAllowedMethods(Arrays.asList("HEAD","POST","GET","DELETE","PUT"));
-        config.setAllowedHeaders(Arrays.asList("*"));
+	public SecurityConfig(CustomUserDetailsService userDetailsService, ObjectMapper objectMapper,
+			AuthSuccessHandler authSuccessHandler) {
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
-    
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-        .csrf(csrf -> csrf.disable())
-        .httpBasic(httpBasic -> httpBasic.disable())
-        .formLogin(formLogin -> formLogin.disable())
-		.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-        .authorizeHttpRequests(authorize -> authorize
-        		// 인증 없이 접근 가능한 엔드포인트
-                .requestMatchers("/auth/**", "/", "/api/session", "/index.html", "/static/**", "/favicon.ico", "/manifest.json").permitAll()
-                // 인증이 필요한 엔드포인트
-                .requestMatchers("/tasks/**", "/lists/**").hasRole("USER")
-        		.requestMatchers("/admin/**").hasRole("ADMIN")
-        		.anyRequest().authenticated() // 나머지는 인증 필요
-        )
-        .exceptionHandling(exceptionHandling -> exceptionHandling
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setContentType("application/json;charset=UTF-8");
-                    response.getWriter().write("{\"error\": \"Unauthorized\"}");
-                })
-            )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .successHandler(authSuccessHandler)
-                .failureHandler(authenticationFailureHandler())
-                .defaultSuccessUrl("/monthlyBoard", true) 
-                .permitAll()
-            )
-            .oauth2Login(oauth2 -> oauth2
-                 .loginPage("/mainAccountInfo")
-                 .defaultSuccessUrl("/monthlyBoard", true) // OAuth2 로그인 후 리디렉션
-                )
-			.logout(logout -> logout
-				.logoutSuccessUrl("/mainAccountInfo")
-				.invalidateHttpSession(true))//validateHttpSession() : 로그인아웃 이후 전체 세션 삭제 여부
-            .sessionManagement(session -> session //sessionManagement() : 세션 생성 및 사용 여부에 대한 설정
-            	.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            	.maximumSessions(1)  // 한 번에 하나의 세션만 허용
-                .maxSessionsPreventsLogin(true)
-                .expiredUrl("/login?expired=true")
-            ).securityContext(securityContext -> securityContext
-                    .securityContextRepository(securityContextRepository())
-            );
-        
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+		this.userDetailsService = userDetailsService;
+		this.objectMapper = objectMapper;
+		this.authSuccessHandler = authSuccessHandler;
+	}
 
-        return http.build();
-    }
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+		CorsConfiguration config = new CorsConfiguration();
+
+		config.setAllowCredentials(true);
+		config.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+		config.setAllowedMethods(Arrays.asList("HEAD", "POST", "GET", "DELETE", "PUT"));
+		config.setAllowedHeaders(Arrays.asList("*"));
+
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", config);
+		return source;
+	}
+
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		http.csrf(csrf -> csrf.disable()).httpBasic(httpBasic -> httpBasic.disable())
+				.formLogin(formLogin -> formLogin.disable())
+				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+				.authorizeHttpRequests(authorize -> authorize
+						// 인증 없이 접근 가능한 엔드포인트
+						.requestMatchers("/mainAccountInfo").permitAll()
+						.requestMatchers("/auth/**", "/api/session", "/index.html", "/static/**", "/favicon.ico",
+								"/manifest.json").permitAll()
+						// 인증이 필요한 엔드포인트
+						.requestMatchers("/tasks/**", "/lists/**").hasRole("USER")
+						.anyRequest().authenticated() // 나머지는 인증 필요
+				).exceptionHandling(exceptionHandling -> exceptionHandling
+						.authenticationEntryPoint((request, response, authException) -> {
+							response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+							response.setContentType("application/json;charset=UTF-8");
+							response.getWriter().write("{\"error\": \"Unauthorized\"}");
+						}))
+				.formLogin(form -> form.loginPage("/login").successHandler(authSuccessHandler)
+						.failureHandler(authenticationFailureHandler()).defaultSuccessUrl("/monthlyBoard", true)
+						.permitAll())
+				.oauth2Login(oauth2 -> oauth2.loginPage("/mainAccountInfo").defaultSuccessUrl("/monthlyBoard", true) // OAuth2
+																														// 로그인
+																														// 후
+																														// 리디렉션
+				).logout(logout -> logout.logoutSuccessUrl("/mainAccountInfo").invalidateHttpSession(true))// validateHttpSession()
+																											// : 로그인아웃
+																											// 이후 전체 세션
+																											// 삭제 여부
+				.sessionManagement(session -> session // sessionManagement() : 세션 생성 및 사용 여부에 대한 설정
+						.sessionCreationPolicy(SessionCreationPolicy.STATELESS).maximumSessions(1) // 한 번에 하나의 세션만 허용
+						.maxSessionsPreventsLogin(true).expiredUrl("/login?expired=true"))
+				.securityContext(
+						securityContext -> securityContext.securityContextRepository(securityContextRepository()));
+
+		http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+
+		return http.build();
+	}
 
 //    @Bean
 //    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
@@ -148,37 +140,39 @@ public class SecurityConfig  {
 //            .authoritiesByUsernameQuery("select email, authority from authorities where email=?")
 //            .passwordEncoder(passwordEncoder());
 //    }
-    @Bean
-    public SecurityContextRepository securityContextRepository() {
-        return new HttpSessionSecurityContextRepository();
-    }
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-    @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-    	 return http.getSharedObject(AuthenticationManagerBuilder.class)
-    			 .authenticationProvider(authenticationProvider())
-                 .build();
-    }
-    @Bean
-    public ServletContextInitializer servletContextInitializer() {
-        return new ServletContextInitializer() {
-            @Override
-            public void onStartup(ServletContext servletContext) {
-                SessionCookieConfig sessionCookieConfig = servletContext.getSessionCookieConfig();
-                sessionCookieConfig.setHttpOnly(true);
-                sessionCookieConfig.setSecure(false); // HTTPS 환경에서는 true로 설정
-            }
-        };
-    }
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring(
-        		).requestMatchers(PathRequest.toStaticResources().atCommonLocations());
-    }
-	
+	@Bean
+	public SecurityContextRepository securityContextRepository() {
+		return new HttpSessionSecurityContextRepository();
+	}
+
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+
+	@Bean
+	public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+		return http.getSharedObject(AuthenticationManagerBuilder.class).authenticationProvider(authenticationProvider())
+				.build();
+	}
+
+	@Bean
+	public ServletContextInitializer servletContextInitializer() {
+		return new ServletContextInitializer() {
+			@Override
+			public void onStartup(ServletContext servletContext) {
+				SessionCookieConfig sessionCookieConfig = servletContext.getSessionCookieConfig();
+				sessionCookieConfig.setHttpOnly(true);
+				sessionCookieConfig.setSecure(false); // HTTPS 환경에서는 true로 설정
+			}
+		};
+	}
+
+	@Bean
+	public WebSecurityCustomizer webSecurityCustomizer() {
+		return (web) -> web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
+	}
+
 //	@Override
 //	protected void configure(HttpSecurity http) throws Exception {
 //		http
@@ -195,17 +189,18 @@ public class SecurityConfig  {
 //			.defaultSuccessUrl("/")		// 로그인 성공 티폴트 redirect 경로
 //			.permitAll(); // 커스텀 로그인 페이지를 설정했으니 permitAll 해준다.
 //	}
-	
+
 	@Bean
 	public AuthenticationProvider authenticationProvider() {
-	    return new CustomAuthenticationProvider();
+		return new CustomAuthenticationProvider();
 	}
+
 	@Bean
-    public AuthenticationFailureHandler authenticationFailureHandler() {
-        return (request, response, exception) -> {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write("{\"message\": \"" + exception.getMessage() + "\"}");
-        };
-    }
+	public AuthenticationFailureHandler authenticationFailureHandler() {
+		return (request, response, exception) -> {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.setContentType("application/json;charset=UTF-8");
+			response.getWriter().write("{\"message\": \"" + exception.getMessage() + "\"}");
+		};
+	}
 }

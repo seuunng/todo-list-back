@@ -1,14 +1,20 @@
 package com.seuunng.todolist.login;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -42,9 +48,10 @@ public class AuthController {
 	private PasswordEncoder passwordEncoder;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
-
     @Autowired
     private ListsRepository listsRepository;
+    @Autowired
+    private UserDetailsService userDetailsService;
     
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest,  HttpServletRequest request, HttpServletResponse response) {
@@ -97,15 +104,27 @@ public class AuthController {
 	
 	 @PostMapping("/guest-login")
 	    public ResponseEntity<?> guestLogin() {
-	        UsernamePasswordAuthenticationToken token =
-	            new UsernamePasswordAuthenticationToken("guest@gmail.com", "guest123");
 
+		    String email = "guest@gmail.com";
+		    String password = "guest123";
+		    
+	        UsernamePasswordAuthenticationToken token =
+	            new UsernamePasswordAuthenticationToken(email, password);
+	        
 	        Authentication authentication = authenticationManager.authenticate(token);
 	        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-	        return ResponseEntity.ok().build();
+	        // 사용자 정보를 바탕으로 JWT 토큰 생성
+	        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+	        String jwtToken = jwtTokenProvider.generateToken(userDetails.getUsername(), userDetails.getAuthorities().stream()
+	            .map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+	        Map<String, Object> response = new HashMap<>();
+	        response.put("token", jwtToken);
+	        response.put("user", userDetails.getUser());
+	        // 클라이언트로 토큰 반환
+	        return ResponseEntity.ok(response);
 	    }
-
+	
 	 @PostMapping("/logout")
 	    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
 		 var auth = SecurityContextHolder.getContext().getAuthentication();
@@ -115,12 +134,27 @@ public class AuthController {
 	        return ResponseEntity.ok().build();
 	    }
 	 @GetMapping("/refresh-token")
-	    public ResponseEntity<?> refreshToken(@AuthenticationPrincipal CustomUserDetails userDetails) {
+	    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
+	        String authHeader = request.getHeader("Authorization");
+	        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Token");
+	        }
 
-	        UsersEntity user = userDetails.getUser();
-	        String jwtToken = jwtTokenProvider.generateToken(userDetails.getUsername(), userDetails.getAuthorities().stream()
-	            .map(auth -> auth.getAuthority())
-	            .collect(Collectors.toList()));
-	        return ResponseEntity.ok(new AuthResponse(user, jwtToken));
-	    }
+	        String refreshToken = authHeader.substring(7);
+	        if (jwtTokenProvider.validateToken(refreshToken)) {
+	            String email = jwtTokenProvider.getEmailFromToken(refreshToken);
+	            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+	            String newToken = jwtTokenProvider.generateToken(userDetails.getUsername(), userDetails.getAuthorities().stream()
+	                    .map(GrantedAuthority::getAuthority)
+	                    .collect(Collectors.toList()));
+	            
+	            Map<String, String> response = new HashMap<>();
+	            response.put("token", newToken);
+
+	            return ResponseEntity.ok(response);
+	        } else {
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Refresh Token");
+	        }
+	 }
 }

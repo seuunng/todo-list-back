@@ -5,6 +5,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,8 +18,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.seuunng.todolist.tasks.TasksEntity;
+import com.seuunng.todolist.login.CustomUserDetails;
 import com.seuunng.todolist.tasks.TasksRepository;
+import com.seuunng.todolist.users.UsersEntity;
 import com.seuunng.todolist.users.UsersRepository;
 
 @RestController
@@ -32,15 +36,31 @@ public class ListsController {
 
 	@GetMapping("/list")
 	public List<ListsEntity> getList() {
-		List<ListsEntity> lists = listsRepository.findAll();
-		System.out.println(lists);
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserName = authentication.getName();
+//        System.out.println("authentication "+authentication);
+        
+        UsersEntity currentUser = usersRepository.findByEmail(currentUserName)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        
+		List<ListsEntity> lists = listsRepository.findByUserId(currentUser.getId());
+//		System.out.println("Lists: " + lists);
 		return lists;
 	}
 
-	@PostMapping("/list")
-	public ListsEntity addList(@RequestBody ListsEntity newList) {
+	@PostMapping(value = "/list", consumes = "application/json", produces = "application/json")
+	public ResponseEntity<?> addList(@RequestBody ListsEntity newList, Authentication authentication) {
+		try {
+			CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+			UsersEntity user = userDetails.getUser();
+			newList.setUser(user);
+			
 		ListsEntity list = listsRepository.save(newList);
-		return list;
+		return ResponseEntity.ok(list);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("addList Error: " + e.getMessage());
+		}
 	}
 
 	@PutMapping("/list/{no}")
