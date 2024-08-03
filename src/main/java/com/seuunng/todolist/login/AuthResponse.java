@@ -15,9 +15,9 @@ public class AuthResponse {
         this.token = token;
     }
     // UsersEntity만 받는 생성자
-    public AuthResponse(UsersEntity user) {
-        this.user = user;
-    }
+//    public AuthResponse(UsersEntity user) {
+//        this.user = user;
+//    }
     public UsersEntity getUser() {
         return user;
     }

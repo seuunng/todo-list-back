@@ -1,5 +1,6 @@
 package com.seuunng.todolist.tasks;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +39,9 @@ public class TasksController {
 	private TasksService tasksService;
 
 	@GetMapping("/task/{id}")
+//	@PreAuthorize("hasRole('USER')")
 	public List<TasksEntity> getTasksByUserId(@PathVariable("id") Long id) {
-		System.out.println("Received request to fetch tasks for user ID: " + id);
 		List<TasksEntity> tasks = tasksService.getTasksByUserId(id);
-		System.out.println("Tasks fetched by userId " + id + ": " + tasks); // 디버깅용 출력
 		return tasks;
 	}
 
@@ -59,13 +59,36 @@ public class TasksController {
 		}
 	}
 
-	@PostMapping("/task")
-	public TasksEntity addTask(@RequestBody TasksEntity newTask, Authentication authentication) {
-	    CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-	    UsersEntity user = userDetails.getUser();
-	    newTask.setUser(user);
-	    TasksEntity task = tasksRepository.save(newTask);
-	    return task;
+	@PostMapping(value = "/task", consumes = "application/json", produces = "application/json")
+	public ResponseEntity<?> addTask(@RequestBody TasksEntity newTask, Authentication authentication) {
+		try {
+			CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+			UsersEntity user = userDetails.getUser();
+			newTask.setUser(user);
+			
+			if (newTask.getList() == null || newTask.getList().getNo() == null) {
+                ListsEntity defaultList = listsRepository.findByUserAndTitle(user, "기본함")
+                        .orElseGet(() -> {
+                            ListsEntity newList = new ListsEntity();
+                            newList.setTitle("기본함");
+                            newList.setUser(user);
+                            newList.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+                            newList.setIsDeleted(false);
+                            return listsRepository.save(newList);
+                        });
+                newTask.setList(defaultList);
+            } else {
+                ListsEntity list = listsRepository.findById(newTask.getList().getNo())
+                        .orElseThrow(() -> new ResourceNotFoundException("List not found"));
+                newTask.setList(list);
+            }
+			
+			TasksEntity task = tasksRepository.save(newTask);
+			return ResponseEntity.ok(task);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+		}
 	}
 
 	@PutMapping("/task/{no}")

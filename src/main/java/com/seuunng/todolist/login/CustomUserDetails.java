@@ -16,10 +16,15 @@ public class CustomUserDetails implements UserDetails {
     public CustomUserDetails(UsersEntity user) {
         this.user = user;
     }
+    
+    public UsersEntity getUser() {
+        return user;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+    	return user.getAuthorities();
+//        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
@@ -56,9 +61,6 @@ public class CustomUserDetails implements UserDetails {
         return user.getNickname();
     }
 
-    public UsersEntity getUser() {
-        return user;
-    }
 
     public Long getUserId() {
         return user.getId();

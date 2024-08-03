@@ -1,5 +1,7 @@
 package com.seuunng.todolist.login;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,18 +17,24 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CustomUserDetailsService implements UserDetailsService {
 
-    @Autowired
-    private UsersRepository usersRepository;
+	@Autowired
+	private UsersRepository usersRepository;
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        UsersEntity user = usersRepository.findByEmail(email)
-        		
-        		.orElseThrow(() -> {
-                    log.debug("User not found with email: {}", email);
-                    return new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email);
-                });
-        return new AccountContext(user, user.getAuthorities());
-    }
+	@Override
+	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+//        UsersEntity user = usersRepository.findByEmail(email)	
+//        		.orElseThrow(() -> {
+//                    log.debug("User not found with email: {}", email);
+//                    return new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email);
+//                });
+//        return new AccountContext(user, user.getAuthorities());
+//        		.orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+		Optional<UsersEntity> userOptional = usersRepository.findByEmail(email);
+		UsersEntity user = userOptional
+				.orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+		return new CustomUserDetails(user);
+	}
 
 }

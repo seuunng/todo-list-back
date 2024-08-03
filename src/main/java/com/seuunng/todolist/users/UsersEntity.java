@@ -3,11 +3,19 @@ package com.seuunng.todolist.users;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.seuunng.todolist.lists.ListsEntity;
+import com.seuunng.todolist.tasks.TasksEntity;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,6 +23,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -44,6 +53,7 @@ public class UsersEntity implements UserDetails {
     
     @Column(nullable = false)
 	private String password;
+    
 //    @Column(nullable = false)
 //	private boolean isSimple; //간편 로그인
 //	private String simplePassword; //간편 로그인 비밀번호
@@ -65,7 +75,9 @@ public class UsersEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private Role role = Role.ROLE_USER;
-
+    
+    @JsonIgnore
+    private Collection<? extends GrantedAuthority> authorities;
     
     @PrePersist
     protected void onCreate() {
@@ -107,5 +119,12 @@ public class UsersEntity implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<ListsEntity> lists;
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    private List<TasksEntity> tasks;
 
 }

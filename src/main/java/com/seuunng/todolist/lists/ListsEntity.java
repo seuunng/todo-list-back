@@ -2,9 +2,14 @@ package com.seuunng.todolist.lists;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.seuunng.todolist.tasks.TasksEntity;
 import com.seuunng.todolist.users.UsersEntity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,6 +17,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -41,7 +47,12 @@ public class ListsEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_no")
+    @JsonBackReference
     private UsersEntity user;
+    
+    @OneToMany(mappedBy = "list", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<TasksEntity> tasks;
     
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;

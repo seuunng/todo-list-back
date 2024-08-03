@@ -48,7 +48,7 @@ public class TasksEntityTest {
         task.setEndDate(new Timestamp(System.currentTimeMillis() + 100000));
         task.setPriority(TasksEntity.Priority.MEDIUM);
         task.setIsRepeated(TasksEntity.IsRepeated.NOREPEAT);
-        task.setIsNotified(TasksEntity.IsNotified.NOALRAM);
+        task.setIsNotified(TasksEntity.IsNotified.NOALARM);
         task.setTaskStatus(TasksEntity.TaskStatus.PENDING);
         task.setUser(user);
         task.setList(listsEntity);

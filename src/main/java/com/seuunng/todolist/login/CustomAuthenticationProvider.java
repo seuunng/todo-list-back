@@ -6,6 +6,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -26,22 +27,14 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		String email = authentication.getName();
 		String password = (String)authentication.getCredentials();
 		
-        log.debug("Authenticating user with email: {}", email);
-		
-		AccountContext accountContext = (AccountContext) userDetailsService.loadUserByUsername(email);
-
-        log.debug("Loaded user: {}", accountContext.getAccount().getEmail());
+		UserDetails userDetails = userDetailsService.loadUserByUsername(email);
         
-		if (!passwordEncoder.matches(password, accountContext.getPassword())) {
-	        System.out.println("Authentication failed for email: " + email);
-			throw new BadCredentialsException("BadCredentialsException'");
-		}
+		if (passwordEncoder.matches(password, userDetails.getPassword())) {
+            return new UsernamePasswordAuthenticationToken(userDetails, password, userDetails.getAuthorities());
+        } else {
+            throw new AuthenticationException("Invalid password") {};
+        }
 		
-		return new UsernamePasswordAuthenticationToken(
-				accountContext,
-				null,
-				accountContext.getAuthorities()
-			);
 	}
 	
 	@Override

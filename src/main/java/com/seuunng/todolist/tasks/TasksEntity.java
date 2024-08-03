@@ -2,6 +2,8 @@ package com.seuunng.todolist.tasks;
 
 import java.sql.Timestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.seuunng.todolist.lists.ListsEntity;
 import com.seuunng.todolist.users.UsersEntity;
 
@@ -53,9 +55,9 @@ public class TasksEntity {
     @Enumerated(EnumType.STRING)
     private IsRepeated isRepeated = IsRepeated.NOREPEAT;
 
-    @Column(name = "is_notified", columnDefinition = "ENUM('NOALRAM', 'ONTIME', 'FIVEMINS', 'THIRTYMINS', 'DAYEARLY')")
+    @Column(name = "is_notified", columnDefinition = "ENUM('NOALARM', 'ONTIME', 'FIVEMINS', 'THIRTYMINS', 'DAYEARLY')")
     @Enumerated(EnumType.STRING)
-    private IsNotified isNotified=IsNotified.NOALRAM;
+    private IsNotified isNotified = IsNotified.NOALARM;
 
     @Column(name = "task_status", columnDefinition = "ENUM('COMPLETED', 'PENDING', 'OVERDUE', 'CANCELLED')")
     @Enumerated(EnumType.STRING)
@@ -70,11 +72,13 @@ public class TasksEntity {
 
     @ManyToOne
     @JoinColumn(name = "list_no")
-    private ListsEntity list = new ListsEntity();
+    @JsonBackReference
+    private ListsEntity list;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private UsersEntity user = new UsersEntity();
+    @JsonIgnore
+    private UsersEntity user;
 
     @PrePersist
     protected void onCreate() {
@@ -98,6 +102,6 @@ public class TasksEntity {
     }
     
     public enum IsNotified {
-    	NOALRAM, ONTIME, FIVEMINS, THIRTYMINS, DAYEARLY
+    	NOALARM, ONTIME, FIVEMINS, THIRTYMINS, DAYEARLY
     }
 }
