@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -22,8 +24,11 @@ public class JwtTokenProvider {
 	private String secretKeyString;
 
 	@Value("${jwt.expiration}")
-	private long expirationTime;
+    private long validityInMilliseconds; // 1h
 
+    @Value("${jwt.refreshExpiration}")
+    private long refreshValidityInMilliseconds;
+    
 	private SecretKey secretKey;
 
 	@PostConstruct
@@ -35,10 +40,16 @@ public class JwtTokenProvider {
 		Claims claims = Jwts.claims().setSubject(email);
 		claims.put("role", roles);
 		Date now = new Date();
-		Date expiryDate = new Date(now.getTime() + expirationTime);
+		Date validity = new Date(now.getTime() + validityInMilliseconds);
+	    
+		String token = Jwts.builder()
+				.setClaims(claims)
+				.setIssuedAt(now)
+				.setExpiration(validity)
+				.signWith(secretKey, SignatureAlgorithm.HS256)
+				.compact();
 
-		return Jwts.builder().setClaims(claims).setIssuedAt(now).setExpiration(expiryDate)
-				.signWith(secretKey, SignatureAlgorithm.HS512).compact();
+		return token;
 	}
 
 	public Claims getClaimsFromToken(String token) {
@@ -46,21 +57,44 @@ public class JwtTokenProvider {
 	}
 
 	public String getEmailFromToken(String token) {
-		Claims claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
-		return claims.getSubject();
-	}
+		 return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
+    }
+	public String createRefreshToken(String email) {
+	    Claims claims = Jwts.claims().setSubject(email);
+	    Date now = new Date();
+	    Date validity = new Date(now.getTime() + refreshValidityInMilliseconds);
 
+	    String refreshToken = Jwts.builder()
+	            .setClaims(claims)
+	            .setIssuedAt(now)
+	            .setExpiration(validity)
+	            .signWith(SignatureAlgorithm.HS256, secretKey)
+	            .compact();
+
+	    return refreshToken;
+	}
 	public boolean validateToken(String token) {
 		try {
 			if (token == null || token.trim().isEmpty()) {
+				System.out.println("token"+token);
 				throw new MalformedJwtException("Empty JWT token");
+			}
+			long dotCount = token.chars().filter(ch -> ch == '.').count();
+			if (dotCount != 2) {
+				throw new MalformedJwtException(
+						"JWT strings must contain exactly 2 period characters. Found: " + dotCount);
 			}
 			Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
 			return true;
-		} catch (Exception e) {
-			System.err.println("Token validation error: " + e.getMessage());
-			e.printStackTrace();
-			return false;
+		}  catch (ExpiredJwtException e) {
+	        System.err.println("Token validation error: " + e.getMessage());
+	        return false;
+	    } catch (MalformedJwtException e) {
+	        System.err.println("Malformed JWT token: " + e.getMessage());
+	        return false;
+	    } catch (JwtException | IllegalArgumentException e) {
+	        System.err.println("Invalid token: " + e.getMessage());
+	        return false;
+	    }
 		}
-	}
 }

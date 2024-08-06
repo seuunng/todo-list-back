@@ -1,19 +1,23 @@
 package com.seuunng.todolist.login;
 
-import java.util.Collections;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.GeneralSecurityException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
@@ -28,10 +32,12 @@ import com.seuunng.todolist.lists.ListsEntity;
 import com.seuunng.todolist.lists.ListsRepository;
 import com.seuunng.todolist.users.UsersEntity;
 import com.seuunng.todolist.users.UsersRepository;
+import com.seuunng.todolist.users.UsersService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 
 
 @RestController
@@ -52,8 +58,12 @@ public class AuthController {
     private ListsRepository listsRepository;
     @Autowired
     private UserDetailsService userDetailsService;
+    @Autowired
+    private UsersService userService;
     
-	@PostMapping("/login")
+    private static final String CLIENT_ID = "834919745048-tiu8j0gnrtsl3f72m5cdkbsk05basoqo.apps.googleusercontent.com";
+	
+    @PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest,  HttpServletRequest request, HttpServletResponse response) {
 		try {
 			if (loginRequest.getEmail() == null || loginRequest.getPassword() == null) {
@@ -133,28 +143,96 @@ public class AuthController {
 	        }
 	        return ResponseEntity.ok().build();
 	    }
-	 @GetMapping("/refresh-token")
-	    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
+	 @PostMapping("/google")
+	    public ResponseEntity<?> googleLogin(@RequestBody TokenDto tokenDto) throws GeneralSecurityException, IOException {
+		 
+		    String accessToken = tokenDto.getAccessToken();
+		    String userInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
+
+		    URL url = new URL(userInfoEndpoint);
+		    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		    conn.setRequestMethod("GET");
+		    conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+
+		    int responseCode = conn.getResponseCode();
+	        
+		    if (responseCode == HttpURLConnection.HTTP_OK) {
+		        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+		        String inputLine;
+		        StringBuffer response = new StringBuffer();
+
+		        while ((inputLine = in.readLine()) != null) {
+		            response.append(inputLine);
+		        }
+		        in.close();
+
+		        JSONObject jsonObject = new JSONObject(response.toString());
+
+		         String email = jsonObject.getString("email");
+		        // 필요한 추가 사용자 정보 가져오기
+		        UsersEntity user = usersRepository.findByEmail(email).orElseGet(() -> {
+		            UsersEntity newUser = new UsersEntity();
+		            newUser.setEmail(email);
+		            newUser.setPassword(""); // 임시 비밀번호 설정
+		            usersRepository.save(newUser);
+		            return newUser;
+		        });
+
+		        CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(email);
+		        String jwtToken = jwtTokenProvider.generateToken(userDetails.getUsername(), userDetails.getAuthorities().stream()
+		                .map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+
+		        Map<String, Object> responseMap = new HashMap<>();
+		        responseMap.put("token", jwtToken);
+		        responseMap.put("user", user);
+		        return ResponseEntity.ok(responseMap);
+		    } else {
+		        return ResponseEntity.status(401).body("Invalid access token.");
+		 }
+		    
+	 }
+	 
+	 @PostMapping("/refresh-token")
+	 public ResponseEntity<?> refreshToken(HttpServletRequest request) {
 	        String authHeader = request.getHeader("Authorization");
+	        
+	        System.out.println("Authorization header: " + authHeader); // 로그 추가
+	        
 	        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Token");
+	            return ResponseEntity.status(401).body("Invalid Token");
 	        }
 
 	        String refreshToken = authHeader.substring(7);
+
+	        System.out.println("Refresh Token: " + refreshToken); // 로그 추가
+	        
 	        if (jwtTokenProvider.validateToken(refreshToken)) {
 	            String email = jwtTokenProvider.getEmailFromToken(refreshToken);
-	            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+	            // 새 액세스 토큰 및 리프레시 토큰 생성
+	            String newAccessToken = jwtTokenProvider.generateToken(email, List.of("ROLE_USER")); // 역할을 적절히 설정
+	            String newRefreshToken = jwtTokenProvider.createRefreshToken(email);
 
-	            String newToken = jwtTokenProvider.generateToken(userDetails.getUsername(), userDetails.getAuthorities().stream()
-	                    .map(GrantedAuthority::getAuthority)
-	                    .collect(Collectors.toList()));
+
+	            System.out.println("New Access Token: " + newAccessToken); // 로그 추가
+	            System.out.println("New Refresh Token: " + newRefreshToken); // 로그 추가
 	            
-	            Map<String, String> response = new HashMap<>();
-	            response.put("token", newToken);
-
-	            return ResponseEntity.ok(response);
+	            return ResponseEntity.ok(Map.of(
+	                    "accessToken", newAccessToken,
+	                    "refreshToken", newRefreshToken
+	            ));
 	        } else {
-	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Refresh Token");
+	            return ResponseEntity.status(401).body("Invalid Refresh Token");
 	        }
-	 }
+	    }
+	 @GetMapping("/session")
+	    public ResponseEntity<?> getSession() {
+	        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+	        if (authentication != null && authentication.isAuthenticated()) {
+	            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+	            UserDTO user = userService.getUserWithLists(userDetails.getUsername());
+	            return ResponseEntity.ok(userDetails);
+	        } else {
+	            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("Unauthorized");
+	        }
+	    }
 }

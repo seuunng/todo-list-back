@@ -14,7 +14,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -32,6 +31,7 @@ import com.seuunng.todolist.login.CustomUserDetailsService;
 import com.seuunng.todolist.login.JwtAuthenticationFilter;
 //import com.seuunng.todolist.login.JwtRequestFilter;
 import com.seuunng.todolist.login.JwtTokenProvider;
+//import com.seuunng.todolist.login.OAuth2UserService;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.SessionCookieConfig;
@@ -45,13 +45,13 @@ public class SecurityConfig {
 
 	private final CustomUserDetailsService userDetailsService;
 	private final ObjectMapper objectMapper;
-	private final AuthSuccessHandler authSuccessHandler;
+//	private final AuthSuccessHandler authSuccessHandler;
 
 	@Autowired
 	private JwtTokenProvider jwtTokenProvider;
-
 //    @Autowired
-//    private UserDetailsService userDetailsService;
+//    private OAuth2UserService oauth2UserService;
+    
 	@Bean
 	public JwtAuthenticationFilter jwtAuthenticationFilter() {
 		return new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
@@ -59,12 +59,12 @@ public class SecurityConfig {
 //    @Autowired
 //    private DataSource dataSource;
 
-	public SecurityConfig(CustomUserDetailsService userDetailsService, ObjectMapper objectMapper,
-			AuthSuccessHandler authSuccessHandler) {
+	public SecurityConfig(CustomUserDetailsService userDetailsService, ObjectMapper objectMapper
+			) {
 
 		this.userDetailsService = userDetailsService;
 		this.objectMapper = objectMapper;
-		this.authSuccessHandler = authSuccessHandler;
+//		this.authSuccessHandler = authSuccessHandler;
 	}
 
 	@Bean
@@ -88,7 +88,7 @@ public class SecurityConfig {
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				.authorizeHttpRequests(authorize -> authorize
 						// 인증 없이 접근 가능한 엔드포인트
-						.requestMatchers("/", "/auth/**", "/oauth2/**", "/api/session").permitAll()
+						.requestMatchers("/", "/auth/**", "/login/**", "/api/session", "/oauth2/**", "/users/**").permitAll()
 						.requestMatchers( "/index.html", "/static/**", "/favicon.ico","/manifest.json").permitAll()
 						// 인증이 필요한 엔드포인트
 						.requestMatchers("/tasks/**", "/lists/**","/monthlyBoard").hasRole("USER")
@@ -99,11 +99,12 @@ public class SecurityConfig {
 							response.setContentType("application/json;charset=UTF-8");
 							response.getWriter().write("{\"error\": \"Unauthorized\"}");
 						}))
-				.formLogin(form -> form.loginPage("/login").successHandler(authSuccessHandler)
+				.formLogin(form -> form.loginPage("/login")
 						.failureHandler(authenticationFailureHandler()).defaultSuccessUrl("/monthlyBoard", true)
 						.permitAll())
 				.oauth2Login(oauth2 -> oauth2.loginPage("/mainAccountInfo")
-						.defaultSuccessUrl("/monthlyBoard", true))
+						.defaultSuccessUrl("/monthlyBoard", true)
+			      )
 				.logout(logout -> logout
 						.logoutSuccessUrl("/mainAccountInfo")
 						.invalidateHttpSession(true))
@@ -117,24 +118,14 @@ public class SecurityConfig {
 
 		return http.build();
 	}
-
 //    @Bean
-//    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-//        UserDetails user = User.builder()
-//            .username("user")
-//            .password(passwordEncoder.encode("password"))
-//            .roles("USER")
-//            .build();
-//        return new InMemoryUserDetailsManager(user);
-//    }
-//    @Autowired
-//    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-//        auth
-//            .jdbcAuthentication()
-//            .dataSource(dataSource)
-//            .usersByUsernameQuery("select email, password, enabled from users where email=?")
-//            .authoritiesByUsernameQuery("select email, authority from authorities where email=?")
-//            .passwordEncoder(passwordEncoder());
+//    public OAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService() {
+//        DefaultOAuth2UserService delegate = new DefaultOAuth2UserService();
+//        return request -> {
+//            OAuth2User user = delegate.loadUser(request);
+//            System.out.println("OAuth2UserService user정보"+ user);
+//            return user;
+//        };
 //    }
 	@Bean
 	public SecurityContextRepository securityContextRepository() {
@@ -169,22 +160,6 @@ public class SecurityConfig {
 		return (web) -> web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
 	}
 
-//	@Override
-//	protected void configure(HttpSecurity http) throws Exception {
-//		http
-//			.authorizeRequests()
-//			.antMatchers("/", "/users").permitAll()
-//			.antMatchers("/mypage").hasRole("USER")
-//			.antMatchers("/messages").hasRole("MANAGER")
-//			.antMatchers("/config").hasRole("ADMIN")
-//			.anyRequest().authenticated()
-//			.and()
-//			.formLogin()
-//			.loginPage("/login")	// 커스텀 로그인 페이지 설정!
-//			.loginProcessingUrl("/login_proc")	// 로그인 post url 지정
-//			.defaultSuccessUrl("/")		// 로그인 성공 티폴트 redirect 경로
-//			.permitAll(); // 커스텀 로그인 페이지를 설정했으니 permitAll 해준다.
-//	}
 
 	@Bean
 	public AuthenticationProvider authenticationProvider() {
