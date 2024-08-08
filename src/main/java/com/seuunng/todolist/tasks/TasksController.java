@@ -128,4 +128,10 @@ public class TasksController {
 		tasksRepository.deleteById(no);
 		return ResponseEntity.ok("task deleted successfully");
 	}
+	
+	@PutMapping("/{no}/status")
+	public ResponseEntity<?> updateTaskStatus(@PathVariable("no") Long no) {
+		tasksService.updateTaskStatus(id, request.getStatus());
+        return ResponseEntity.ok().build();
+	}
 }

@@ -115,7 +115,7 @@ public class AuthController {
 	 @PostMapping("/guest-login")
 	    public ResponseEntity<?> guestLogin() {
 
-		    String email = "guest@gmail.com";
+		    String email = "mnb2856@gmail.com";
 		    String password = "guest123";
 		    
 	        UsernamePasswordAuthenticationToken token =
@@ -169,15 +169,22 @@ public class AuthController {
 		        JSONObject jsonObject = new JSONObject(response.toString());
 
 		         String email = jsonObject.getString("email");
+		         String name = jsonObject.getString("given_name");
 		        // 필요한 추가 사용자 정보 가져오기
 		        UsersEntity user = usersRepository.findByEmail(email).orElseGet(() -> {
 		            UsersEntity newUser = new UsersEntity();
 		            newUser.setEmail(email);
+		            newUser.setNickname(name);
 		            newUser.setPassword(""); // 임시 비밀번호 설정
 		            usersRepository.save(newUser);
 		            return newUser;
 		        });
-
+		        
+		        ListsEntity defaultList = new ListsEntity();
+		        defaultList.setTitle("기본함");
+		        defaultList.setUser(user); // 리스트와 사용자 연결
+		        listsRepository.save(defaultList);
+		        
 		        CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(email);
 		        String jwtToken = jwtTokenProvider.generateToken(userDetails.getUsername(), userDetails.getAuthorities().stream()
 		                .map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
@@ -211,10 +218,6 @@ public class AuthController {
 	            // 새 액세스 토큰 및 리프레시 토큰 생성
 	            String newAccessToken = jwtTokenProvider.generateToken(email, List.of("ROLE_USER")); // 역할을 적절히 설정
 	            String newRefreshToken = jwtTokenProvider.createRefreshToken(email);
-
-
-	            System.out.println("New Access Token: " + newAccessToken); // 로그 추가
-	            System.out.println("New Refresh Token: " + newRefreshToken); // 로그 추가
 	            
 	            return ResponseEntity.ok(Map.of(
 	                    "accessToken", newAccessToken,

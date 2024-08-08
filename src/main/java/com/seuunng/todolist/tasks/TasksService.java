@@ -2,8 +2,11 @@ package com.seuunng.todolist.tasks;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.seuunng.todolist.tasks.TasksEntity.TaskStatus;
 
 @Service
 public class TasksService {
@@ -23,5 +26,12 @@ public class TasksService {
         List<TasksEntity> tasks = tasksRepository.findByUserId(id);
         System.out.println("Tasks fetched: " + tasks); // 디버깅용 출력
         return tasks;
+    }
+    
+    public void updateTaskStatus(Long id, TaskStatus newStatus) {
+        TasksEntity task = tasksRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+        task.setTaskStatus(newStatus);
+        tasksRepository.save(task);
     }
 }
