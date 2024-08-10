@@ -130,8 +130,8 @@ public class TasksController {
 	}
 	
 	@PutMapping("/{no}/status")
-	public ResponseEntity<?> updateTaskStatus(@PathVariable("no") Long no) {
-		tasksService.updateTaskStatus(id, request.getStatus());
+	public ResponseEntity<?> updateTaskStatus(@PathVariable("no") Long no, @RequestBody TaskStatusUpdateRequest request) {
+		tasksService.updateTaskStatus(no, request.getStatus());
         return ResponseEntity.ok().build();
 	}
 }

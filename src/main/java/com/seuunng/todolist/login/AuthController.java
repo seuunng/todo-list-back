@@ -105,10 +105,14 @@ public class AuthController {
 		user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
 
 		usersRepository.save(user);
+		
+		if (user.getLists() == null ) {
 		ListsEntity defaultList = new ListsEntity();
         defaultList.setTitle("기본함");
         defaultList.setUser(user); // 리스트와 사용자 연결
         listsRepository.save(defaultList);
+		};
+
 		return ResponseEntity.status(201).build();
 	}
 	
