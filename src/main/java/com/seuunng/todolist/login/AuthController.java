@@ -119,7 +119,7 @@ public class AuthController {
 	 @PostMapping("/guest-login")
 	    public ResponseEntity<?> guestLogin() {
 
-		    String email = "mnb2856@gmail.com";
+		    String email = "guest@gmail.com";
 		    String password = "guest123";
 		    
 	        UsernamePasswordAuthenticationToken token =

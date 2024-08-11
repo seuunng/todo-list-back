@@ -1,7 +1,10 @@
 package com.seuunng.todolist.tasks;
 
 import java.sql.Timestamp;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,7 +42,6 @@ public class TasksController {
 	private TasksService tasksService;
 
 	@GetMapping("/task/{id}")
-//	@PreAuthorize("hasRole('USER')")
 	public List<TasksEntity> getTasksByUserId(@PathVariable("id") Long id) {
 		List<TasksEntity> tasks = tasksService.getTasksByUserId(id);
 		return tasks;
@@ -64,6 +66,11 @@ public class TasksController {
 		try {
 			CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 			UsersEntity user = userDetails.getUser();
+			if (newTask.getStartDate().before(new Date())) {
+			    newTask.setTaskStatus(TasksEntity.TaskStatus.OVERDUE);
+			} else {
+			    newTask.setTaskStatus(TasksEntity.TaskStatus.PENDING);
+			}
 			newTask.setUser(user);
 			
 			if (newTask.getList() == null || newTask.getList().getNo() == null) {
@@ -131,7 +138,13 @@ public class TasksController {
 	
 	@PutMapping("/{no}/status")
 	public ResponseEntity<?> updateTaskStatus(@PathVariable("no") Long no, @RequestBody TaskStatusUpdateRequest request) {
+		if (request.getStatus() == null) {
+	        return ResponseEntity.badRequest().body("Task status must not be null");
+	    }
 		tasksService.updateTaskStatus(no, request.getStatus());
-        return ResponseEntity.ok().build();
+		 Map<String, String> response = new HashMap<>();
+		    response.put("message", "Task status updated successfully");
+		    response.put("taskStatus", request.getStatus().name());
+        return ResponseEntity.ok(response);
 	}
 }
