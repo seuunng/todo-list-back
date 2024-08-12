@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.seuunng.todolist.lists.ListsEntity;
+import com.seuunng.todolist.lists.SmartListsEntity;
 import com.seuunng.todolist.tasks.TasksEntity;
 
 import jakarta.persistence.CascadeType;
@@ -130,5 +131,9 @@ public class UsersEntity implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonBackReference
     private List<TasksEntity> tasks;
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<SmartListsEntity> smartList;
 
 }

@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.seuunng.todolist.lists.ListsEntity;
+import com.seuunng.todolist.lists.SmartListsEntity;
 import com.seuunng.todolist.users.UsersEntity;
 
 import jakarta.persistence.Column;
@@ -78,7 +79,14 @@ public class TasksEntity {
     public Long getListNo() {
         return list != null ? list.getNo() : null;
     }
+    @ManyToOne
+    @JoinColumn(name = "smart_list_no")
+    @JsonBackReference
+    private SmartListsEntity smartList;
     
+    public Long getSmartListNo() {
+        return smartList != null ? smartList.getNo() : null;
+    }
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonIgnore
