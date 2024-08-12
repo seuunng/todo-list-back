@@ -15,24 +15,25 @@ public class UsersEntityTest {
 
     @Test
     public void testCreateUser() {
-    	String userId = "testuser";
+    	String userEmail = "guest@example.com";
     	 
-    	UsersEntity existingUser = usersRepository.findById(userId).orElse(null);
+    	UsersEntity existingUser = usersRepository.findByEmail(userEmail).orElse(null);
         if (existingUser == null) {
-            UsersEntity user = new UsersEntity();
-            user.setId(userId);
-            user.setNickname("Test User");
-            user.setPassword("password");
+        	 UsersEntity user = new UsersEntity();
+             user.setNickname("guest");
+             user.setEmail("guest@example.com");
+             user.setPassword("password");
+             user.setRole("ADMIN");
 
         UsersEntity savedUser = usersRepository.save(user);
 
         assertThat(savedUser).isNotNull();
-        assertThat(savedUser.getNo()).isNotNull();
-        assertThat(savedUser.getId()).isEqualTo("testuser");
-        assertThat(savedUser.getNickname()).isEqualTo("Test User");
+        assertThat(savedUser.getId()).isNotNull();
+        assertThat(savedUser.getEmail()).isEqualTo("guest@example.com");
+        assertThat(savedUser.getNickname()).isEqualTo("guest");
         } else {
             // User already exists, handle accordingly
-            System.out.println("User already exists: " + userId);
+            System.out.println("User already exists: " + userEmail);
         }
     }
 }

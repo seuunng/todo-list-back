@@ -21,6 +21,10 @@ bin/
 .idea
 *.iws
 *.iml
+*.config
+*.env
+*.properties
+
 *.ipr
 out/
 !**/src/main/**/out/

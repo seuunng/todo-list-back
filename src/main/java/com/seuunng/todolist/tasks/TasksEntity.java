@@ -2,7 +2,10 @@ package com.seuunng.todolist.tasks;
 
 import java.sql.Timestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.seuunng.todolist.lists.ListsEntity;
+import com.seuunng.todolist.lists.SmartListsEntity;
 import com.seuunng.todolist.users.UsersEntity;
 
 import jakarta.persistence.Column;
@@ -53,9 +56,9 @@ public class TasksEntity {
     @Enumerated(EnumType.STRING)
     private IsRepeated isRepeated = IsRepeated.NOREPEAT;
 
-    @Column(name = "is_notified", columnDefinition = "ENUM('NOALRAM', 'ONTIME', 'FIVEMINS', 'THIRTYMINS', 'DAYEARLY')")
+    @Column(name = "is_notified", columnDefinition = "ENUM('NOALARM', 'ONTIME', 'FIVEMINS', 'THIRTYMINS', 'DAYEARLY')")
     @Enumerated(EnumType.STRING)
-    private IsNotified isNotified=IsNotified.NOALRAM;
+    private IsNotified isNotified = IsNotified.NOALARM;
 
     @Column(name = "task_status", columnDefinition = "ENUM('COMPLETED', 'PENDING', 'OVERDUE', 'CANCELLED')")
     @Enumerated(EnumType.STRING)
@@ -70,10 +73,23 @@ public class TasksEntity {
 
     @ManyToOne
     @JoinColumn(name = "list_no")
+    @JsonBackReference
     private ListsEntity list;
-
+    
+    public Long getListNo() {
+        return list != null ? list.getNo() : null;
+    }
     @ManyToOne
-    @JoinColumn(name = "user_no")
+    @JoinColumn(name = "smart_list_no")
+    @JsonBackReference
+    private SmartListsEntity smartList;
+    
+    public Long getSmartListNo() {
+        return smartList != null ? smartList.getNo() : null;
+    }
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
     private UsersEntity user;
 
     @PrePersist
@@ -98,6 +114,6 @@ public class TasksEntity {
     }
     
     public enum IsNotified {
-    	NOALRAM, ONTIME, FIVEMINS, THIRTYMINS, DAYEARLY
+    	NOALARM, ONTIME, FIVEMINS, THIRTYMINS, DAYEARLY
     }
 }
