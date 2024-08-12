@@ -1,5 +1,6 @@
 package com.seuunng.todolist.lists;
 
+<<<<<<< HEAD
 import java.util.List;
 import java.util.Optional;
 
@@ -18,4 +19,12 @@ public interface ListsRepository extends JpaRepository<ListsEntity, Long>{
 	
 	@Query("SELECT l FROM ListsEntity l JOIN FETCH l.tasks WHERE l.id = :id")
 	ListsEntity findByIdWithTasks(@Param("id") Long id);
+=======
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface ListsRepository extends JpaRepository<ListsEntity, Long>{
+
+>>>>>>> origin/server
 }

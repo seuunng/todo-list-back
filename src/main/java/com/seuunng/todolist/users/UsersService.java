@@ -1,5 +1,6 @@
 package com.seuunng.todolist.users;
 
+<<<<<<< HEAD
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -22,4 +23,8 @@ public class UsersService {
         // 필요한 다른 필드들을 설정
         return userDTO;
     }
+=======
+public class UsersService {
+
+>>>>>>> origin/server
 }

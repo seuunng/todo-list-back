@@ -1,5 +1,6 @@
 package com.seuunng.todolist.users;
 
+<<<<<<< HEAD
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -26,19 +27,35 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+=======
+import java.sql.Blob;
+import java.util.Date;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+>>>>>>> origin/server
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+<<<<<<< HEAD
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+=======
+import lombok.Getter;
+>>>>>>> origin/server
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
+<<<<<<< HEAD
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -54,6 +71,21 @@ public class UsersEntity implements UserDetails {
 	private String nickname;
     
     @Column(nullable = true)
+=======
+@Table(name = "users")
+public class UsersEntity {
+	@Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long no;
+	
+	@Column(nullable = false, unique = true)
+	private String id;
+	
+    @Column(nullable = false)
+	private String nickname;
+    
+    @Column(nullable = false)
+>>>>>>> origin/server
 	private String password;
     
 //    @Column(nullable = false)
@@ -61,6 +93,7 @@ public class UsersEntity implements UserDetails {
 //	private String simplePassword; //간편 로그인 비밀번호
 //    @Lob
 //	private Blob figierprint; //지문 로그인
+<<<<<<< HEAD
 
 //	@Enumerated(EnumType.STRING)
 //	@JsonIgnore
@@ -70,10 +103,14 @@ public class UsersEntity implements UserDetails {
 //	@Enumerated(EnumType.STRING)
 //	private ShareStatus shareStatus;
 	
+=======
+    
+>>>>>>> origin/server
     @Column(name = "created_at", nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
 	private Date created_at;
     
+<<<<<<< HEAD
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private Role role = Role.ROLE_USER;
@@ -81,12 +118,15 @@ public class UsersEntity implements UserDetails {
     @JsonIgnore
     private Collection<? extends GrantedAuthority> authorities;
     
+=======
+>>>>>>> origin/server
     @PrePersist
     protected void onCreate() {
         if (created_at == null) {
             created_at = new Date();
         }
         if (nickname == null || nickname.isEmpty()) {
+<<<<<<< HEAD
             nickname = email; 
         }
     }
@@ -136,4 +176,9 @@ public class UsersEntity implements UserDetails {
     @JsonManagedReference
     private List<SmartListsEntity> smartList;
 
+=======
+            nickname = id; 
+        }
+    }
+>>>>>>> origin/server
 }

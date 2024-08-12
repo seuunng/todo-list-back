@@ -1,5 +1,6 @@
 package com.seuunng.todolist.lists;
 
+<<<<<<< HEAD
 import java.sql.Timestamp;
 import java.util.stream.Collectors;
 
@@ -39,4 +40,8 @@ public class ListsService {
 	        }).collect(Collectors.toList()));
 	        return listDTO;
 	    }
+=======
+public class ListsService {
+
+>>>>>>> origin/server
 }

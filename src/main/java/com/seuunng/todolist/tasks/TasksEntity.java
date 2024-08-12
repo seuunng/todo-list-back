@@ -2,10 +2,14 @@ package com.seuunng.todolist.tasks;
 
 import java.sql.Timestamp;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.seuunng.todolist.lists.ListsEntity;
 import com.seuunng.todolist.lists.SmartListsEntity;
+=======
+import com.seuunng.todolist.lists.ListsEntity;
+>>>>>>> origin/server
 import com.seuunng.todolist.users.UsersEntity;
 
 import jakarta.persistence.Column;
@@ -56,9 +60,15 @@ public class TasksEntity {
     @Enumerated(EnumType.STRING)
     private IsRepeated isRepeated = IsRepeated.NOREPEAT;
 
+<<<<<<< HEAD
     @Column(name = "is_notified", columnDefinition = "ENUM('NOALARM', 'ONTIME', 'FIVEMINS', 'THIRTYMINS', 'DAYEARLY')")
     @Enumerated(EnumType.STRING)
     private IsNotified isNotified = IsNotified.NOALARM;
+=======
+    @Column(name = "is_notified", columnDefinition = "ENUM('NOALRAM', 'ONTIME', 'FIVEMINS', 'THIRTYMINS', 'DAYEARLY')")
+    @Enumerated(EnumType.STRING)
+    private IsNotified isNotified=IsNotified.NOALRAM;
+>>>>>>> origin/server
 
     @Column(name = "task_status", columnDefinition = "ENUM('COMPLETED', 'PENDING', 'OVERDUE', 'CANCELLED')")
     @Enumerated(EnumType.STRING)
@@ -73,6 +83,7 @@ public class TasksEntity {
 
     @ManyToOne
     @JoinColumn(name = "list_no")
+<<<<<<< HEAD
     @JsonBackReference
     private ListsEntity list;
     
@@ -90,6 +101,12 @@ public class TasksEntity {
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonIgnore
+=======
+    private ListsEntity list;
+
+    @ManyToOne
+    @JoinColumn(name = "user_no")
+>>>>>>> origin/server
     private UsersEntity user;
 
     @PrePersist
@@ -114,6 +131,10 @@ public class TasksEntity {
     }
     
     public enum IsNotified {
+<<<<<<< HEAD
     	NOALARM, ONTIME, FIVEMINS, THIRTYMINS, DAYEARLY
+=======
+    	NOALRAM, ONTIME, FIVEMINS, THIRTYMINS, DAYEARLY
+>>>>>>> origin/server
     }
 }

@@ -1,5 +1,6 @@
 package com.seuunng.todolist.tasks;
 
+<<<<<<< HEAD
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,4 +35,8 @@ public class TasksService {
         task.setTaskStatus(newStatus);
         tasksRepository.save(task);
     }
+=======
+public class TasksService {
+
+>>>>>>> origin/server
 }
