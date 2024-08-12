@@ -23,6 +23,9 @@ public class TaskDTO {
     private IsNotified isNotified;
     private TaskStatus taskStatus;
     private Timestamp createdAt;
+    private Long listNo;
+    private Long smartListNo;
+    private Long userNo;
     
     // 필요한 다른 필드들
 }

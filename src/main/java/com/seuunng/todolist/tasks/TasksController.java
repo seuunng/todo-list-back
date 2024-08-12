@@ -1,22 +1,18 @@
 package com.seuunng.todolist.tasks;
 
-<<<<<<< HEAD
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-=======
-import java.util.List;
->>>>>>> origin/server
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-<<<<<<< HEAD
 import org.springframework.security.core.Authentication;
-=======
->>>>>>> origin/server
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,25 +26,25 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.seuunng.todolist.lists.ListsEntity;
 import com.seuunng.todolist.lists.ListsRepository;
-<<<<<<< HEAD
+import com.seuunng.todolist.lists.SmartListsEntity;
+import com.seuunng.todolist.lists.SmartListsRepository;
 import com.seuunng.todolist.login.CustomUserDetails;
+import com.seuunng.todolist.login.TaskDTO;
 import com.seuunng.todolist.users.UsersEntity;
-=======
->>>>>>> origin/server
 import com.seuunng.todolist.users.UsersRepository;
 
 @RestController
 @RequestMapping("/tasks")
 @CrossOrigin(origins = "http://localhost:3000")
 public class TasksController {
-<<<<<<< HEAD
-
 	@Autowired
 	private UsersRepository usersRepository;
 	@Autowired
 	private TasksRepository tasksRepository;
 	@Autowired
 	private ListsRepository listsRepository;
+	@Autowired
+	private SmartListsRepository smartListsRepository;
 	@Autowired
 	private TasksService tasksService;
 
@@ -71,12 +67,42 @@ public class TasksController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 		}
 	}
-
-	@PostMapping(value = "/task", consumes = "application/json", produces = "application/json")
-	public ResponseEntity<?> addTask(@RequestBody TasksEntity newTask, Authentication authentication) {
+	@GetMapping("/bySmartList")
+	public ResponseEntity<List<TasksEntity>> getTasksBySmartListId(@RequestParam("listId") Long listId) {
+		System.out.println("bySmartList 실행");
 		try {
+			SmartListsEntity list = smartListsRepository.findById(listId)
+					.orElseThrow(() -> new ResourceNotFoundException("List not found"));
+
+			List<TasksEntity> tasks = tasksRepository.findBySmartList(list);
+
+			System.out.println("tasks : "+tasks);
+			return ResponseEntity.ok(tasks);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
+	}
+	@PostMapping(value = "/task", consumes = "application/json", produces = "application/json")
+	public ResponseEntity<?> addTask(@RequestBody TaskDTO taskDTO, Authentication authentication) {
+		try {
+	        System.out.println("Received Task: " + taskDTO);
 			CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 			UsersEntity user = userDetails.getUser();
+			
+			 TasksEntity newTask = new TasksEntity();
+		        newTask.setTitle(taskDTO.getTitle());
+		        newTask.setContent(taskDTO.getContent());
+		        newTask.setStartDate(taskDTO.getStartDate());
+		        newTask.setEndDate(taskDTO.getEndDate());
+		        newTask.setPriority(taskDTO.getPriority());
+		        newTask.setDateStatus(taskDTO.getDateStatus());
+		        newTask.setIsRepeated(taskDTO.getIsRepeated());
+		        newTask.setIsNotified(taskDTO.getIsNotified());
+		        newTask.setListNo(taskDTO.getListNo());
+		        newTask.setSmartListNo(taskDTO.getSmartListNo());
+		        newTask.setUser(user);
+		        
 			if (newTask.getStartDate().before(new Date())) {
 			    newTask.setTaskStatus(TasksEntity.TaskStatus.OVERDUE);
 			} else {
@@ -85,10 +111,10 @@ public class TasksController {
 			newTask.setUser(user);
 			
 			if (newTask.getList() == null || newTask.getList().getNo() == null) {
-                ListsEntity defaultList = listsRepository.findByUserAndTitle(user, "기본함")
+				ListsEntity defaultList = listsRepository.findByUserAndTitle(user, "첫번째 목록")
                         .orElseGet(() -> {
-                            ListsEntity newList = new ListsEntity();
-                            newList.setTitle("기본함");
+                        	ListsEntity newList = new ListsEntity();
+                            newList.setTitle("첫번째 목록");
                             newList.setUser(user);
                             newList.setCreatedAt(new Timestamp(System.currentTimeMillis()));
                             newList.setIsDeleted(false);
@@ -96,9 +122,26 @@ public class TasksController {
                         });
                 newTask.setList(defaultList);
             } else {
-                ListsEntity list = listsRepository.findById(newTask.getList().getNo())
+            	ListsEntity list = listsRepository.findById(newTask.getList().getNo())
                         .orElseThrow(() -> new ResourceNotFoundException("List not found"));
                 newTask.setList(list);
+            }
+			
+			if (newTask.getSmartList() == null || newTask.getSmartList().getNo() == null) {
+				SmartListsEntity defaultList = smartListsRepository.findByUserAndTitle(user, "기본함")
+                        .orElseGet(() -> {
+                        	SmartListsEntity newList = new SmartListsEntity();
+                            newList.setTitle("기본함");
+                            newList.setUser(user);
+                            newList.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+                            newList.setIsDeleted(false);
+                            return smartListsRepository.save(newList);
+                        });
+                newTask.setSmartList(defaultList);
+            } else {
+            	SmartListsEntity list = smartListsRepository.findById(newTask.getSmartList().getNo())
+                        .orElseThrow(() -> new ResourceNotFoundException("List not found"));
+                newTask.setSmartList(list);
             }
 			
 			TasksEntity task = tasksRepository.save(newTask);
@@ -115,54 +158,12 @@ public class TasksController {
 		System.out.println("Request Body: " + newTask);
 
 		return tasksRepository.findById(no).map(task -> {
-=======
-	
-	@Autowired
-    private UsersRepository usersRepository;
-	@Autowired
-    private TasksRepository tasksRepository;
-	@Autowired
-    private ListsRepository listsRepository;
-	
-	@GetMapping("/task")
-	public List<TasksEntity> getList() {
-		List<TasksEntity> tasks = tasksRepository.findAll();
-		System.out.println(tasks);
-		return tasks;
-	}
-	 @GetMapping("/byList")
-	  public ResponseEntity<List<TasksEntity>> getTasksByListId(@RequestParam("listId") Long listId) {
-		 try {
-	            ListsEntity list = listsRepository.findById(listId)
-	                .orElseThrow(() -> new ResourceNotFoundException("List not found"));
-	            
-	            List<TasksEntity> tasks = tasksRepository.findByList(list);
-	            return ResponseEntity.ok(tasks);
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-	        }
-	    }
-	@PostMapping("/task")
-	public TasksEntity addTask(@RequestBody TasksEntity newTask) {
-		TasksEntity task = tasksRepository.save(newTask);
-		return task;
-	}
-	
-	@PutMapping("/task/{no}")
-	public  ResponseEntity<TasksEntity> updateTask(@PathVariable("no") Long no, @RequestBody TasksEntity newTask) {
-		System.out.println("Received PUT request to update task with ID: " + no);
-        System.out.println("Request Body: " + newTask);
-        
-		return tasksRepository.findById(no)
-		.map(task ->{
->>>>>>> origin/server
+
 			task.setTitle(newTask.getTitle());
 			task.setContent(newTask.getContent());
 			task.setStartDate(newTask.getStartDate());
 			task.setEndDate(newTask.getEndDate());
 			task.setPriority(newTask.getPriority());
-<<<<<<< HEAD
 			task.setDateStatus(newTask.getDateStatus());
 			task.setIsRepeated(newTask.getIsRepeated());
 			task.setIsNotified(newTask.getIsNotified());
@@ -201,32 +202,108 @@ public class TasksController {
 		    response.put("taskStatus", request.getStatus().name());
         return ResponseEntity.ok(response);
 	}
-=======
-	        task.setDateStatus(newTask.getDateStatus());
-			task.setIsRepeated(newTask.getIsRepeated());
-			task.setIsNotified(newTask.getIsNotified());
-			task.setTaskStatus(newTask.getTaskStatus());
-			if (newTask.getList() != null) {
-                ListsEntity list = listsRepository.findById(newTask.getList().getNo())
-                    .orElseThrow(() -> new ResourceNotFoundException("List not found"));
-                task.setList(list);
-            }
-			
-			tasksRepository.save(task);
-            System.out.println("Task updated: " + task);
-			
-			return  ResponseEntity.ok(task);
-		})
-		.orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+	
+	@GetMapping("/default")
+	public List<TasksEntity> getDefaultList() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserName = authentication.getName();
+        
+        UsersEntity currentUser = usersRepository.findByEmail(currentUserName)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        
+		List<TasksEntity> defaultTasks = tasksRepository.findByUserIdAndListIsNull(currentUser.getId());
+		return defaultTasks;
 	}
 	
-	@DeleteMapping("/task/{no}")
-	 public ResponseEntity<?> deleteTask(@PathVariable("no") Long no) {
-		if (no == null) {
-           return ResponseEntity.badRequest().body("Task no cannot be null");
-       }
-      tasksRepository.deleteById(no);
-      return ResponseEntity.ok("task deleted successfully");
-  }
->>>>>>> origin/server
+	@GetMapping("/today")
+	public List<TasksEntity> getTodayList() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserName = authentication.getName();
+        
+        UsersEntity currentUser = usersRepository.findByEmail(currentUserName)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Timestamp today = new Timestamp(System.currentTimeMillis());
+        
+		List<TasksEntity> todayTasks = tasksRepository.findTodayTasks(currentUser.getId(), today);
+		return todayTasks;
+	}
+
+	@GetMapping("/tomorrow")
+	public List<TasksEntity> getTomorrowList() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserName = authentication.getName();
+        
+        UsersEntity currentUser = usersRepository.findByEmail(currentUserName)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+
+        // 현재 날짜를 기준으로 오늘의 자정 시간을 가져옵니다.
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        Timestamp todayStart = new Timestamp(calendar.getTimeInMillis());
+
+        Timestamp today = new Timestamp(System.currentTimeMillis());
+        // 내일의 자정 시간 (내일의 시작 시간)
+        calendar.add(Calendar.DAY_OF_YEAR, 1);
+        Timestamp tomorrowStart = new Timestamp(calendar.getTimeInMillis());
+
+        // 내일의 끝 시간 (모레 자정 전까지)
+        calendar.add(Calendar.DAY_OF_YEAR, 1);
+        Timestamp tomorrowEnd = new Timestamp(calendar.getTimeInMillis());
+        
+        //내일까지 해야할일, 오늘 포함 
+		List<TasksEntity> tomorrowTasks = tasksRepository.findTomorrowTasks(currentUser.getId(),  todayStart, tomorrowEnd);
+		return tomorrowTasks;
+	}
+
+	@GetMapping("/next7Days")
+	public List<TasksEntity> getNext7DaysList() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserName = authentication.getName();
+        
+     // 현재 날짜를 기준으로 오늘의 자정 시간을 가져옵니다.
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        Timestamp todayStart = new Timestamp(calendar.getTimeInMillis());
+
+        // 7일 후의 자정 시간 (7일 후의 끝 시간)
+        calendar.add(Calendar.DAY_OF_YEAR, 7);
+        Timestamp next7DaysEnd = new Timestamp(calendar.getTimeInMillis());
+        UsersEntity currentUser = usersRepository.findByEmail(currentUserName)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        
+		List<TasksEntity> next7DaysTasks = tasksRepository.findTasksForNext7Days(currentUser.getId(), todayStart, next7DaysEnd);
+        return next7DaysTasks;
+	}
+
+	@GetMapping("/completed")
+	public List<TasksEntity> getCompletedList() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserName = authentication.getName();
+        
+        UsersEntity currentUser = usersRepository.findByEmail(currentUserName)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        
+		List<TasksEntity> completedTasks = tasksRepository.findByCompletedTasks(currentUser.getId());
+		return completedTasks;
+	}
+
+	@GetMapping("/deleted")
+	public List<TasksEntity> getDeletedList() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserName = authentication.getName();
+        
+        UsersEntity currentUser = usersRepository.findByEmail(currentUserName)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        
+        List<TasksEntity> deletedTasks = tasksRepository.findDeletedTasks(currentUser.getId());
+        return deletedTasks;
+	}
 }

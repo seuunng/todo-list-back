@@ -2,14 +2,10 @@ package com.seuunng.todolist.tasks;
 
 import java.sql.Timestamp;
 
-<<<<<<< HEAD
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.seuunng.todolist.lists.ListsEntity;
 import com.seuunng.todolist.lists.SmartListsEntity;
-=======
-import com.seuunng.todolist.lists.ListsEntity;
->>>>>>> origin/server
 import com.seuunng.todolist.users.UsersEntity;
 
 import jakarta.persistence.Column;
@@ -60,17 +56,11 @@ public class TasksEntity {
     @Enumerated(EnumType.STRING)
     private IsRepeated isRepeated = IsRepeated.NOREPEAT;
 
-<<<<<<< HEAD
     @Column(name = "is_notified", columnDefinition = "ENUM('NOALARM', 'ONTIME', 'FIVEMINS', 'THIRTYMINS', 'DAYEARLY')")
     @Enumerated(EnumType.STRING)
     private IsNotified isNotified = IsNotified.NOALARM;
-=======
-    @Column(name = "is_notified", columnDefinition = "ENUM('NOALRAM', 'ONTIME', 'FIVEMINS', 'THIRTYMINS', 'DAYEARLY')")
-    @Enumerated(EnumType.STRING)
-    private IsNotified isNotified=IsNotified.NOALRAM;
->>>>>>> origin/server
 
-    @Column(name = "task_status", columnDefinition = "ENUM('COMPLETED', 'PENDING', 'OVERDUE', 'CANCELLED')")
+    @Column(name = "task_status", columnDefinition = "ENUM('COMPLETED', 'PENDING', 'OVERDUE', 'CANCELLED', 'DELETED')")
     @Enumerated(EnumType.STRING)
     private TaskStatus taskStatus;
 
@@ -82,31 +72,44 @@ public class TasksEntity {
 //    private SectionEntity section;
 
     @ManyToOne
-    @JoinColumn(name = "list_no")
-<<<<<<< HEAD
-    @JsonBackReference
+    @JoinColumn(name = "list_id", nullable = true)
+    @JsonBackReference(value = "tasks-list")
     private ListsEntity list;
     
+    public void setListNo(Long listNo) {
+        if (listNo == null) {
+            this.list = null;
+        } else {
+            this.list = new ListsEntity();
+            this.list.setNo(listNo);
+        }
+    }
+
     public Long getListNo() {
         return list != null ? list.getNo() : null;
     }
+    
     @ManyToOne
-    @JoinColumn(name = "smart_list_no")
-    @JsonBackReference
+    @JoinColumn(name = "smart_list_id", nullable = true)
+    @JsonBackReference(value = "tasks-smartList")
     private SmartListsEntity smartList;
+    
+    public void setSmartListNo(Long smartListNo) {
+        if (smartListNo == null) {
+            this.smartList = null;
+        } else {
+            this.smartList = new SmartListsEntity();
+            this.smartList.setNo(smartListNo);
+        }
+    }
     
     public Long getSmartListNo() {
         return smartList != null ? smartList.getNo() : null;
     }
+    
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonIgnore
-=======
-    private ListsEntity list;
-
-    @ManyToOne
-    @JoinColumn(name = "user_no")
->>>>>>> origin/server
+    @JsonBackReference(value = "user-tasks")
     private UsersEntity user;
 
     @PrePersist
@@ -118,23 +121,16 @@ public class TasksEntity {
     public enum Priority {
         LOW, MEDIUM, HIGH
     }
-
     public enum TaskStatus {
-        COMPLETED, PENDING, OVERDUE, CANCELLED
+        COMPLETED, PENDING, OVERDUE, CANCELLED, DELETED
     }
-    
     public enum DateStatus {
         DATE, PERIOD
     }
     public enum IsRepeated {
     	NOREPEAT, DAILY, WEEKLY, MONTHLY, YEARLY
     }
-    
     public enum IsNotified {
-<<<<<<< HEAD
     	NOALARM, ONTIME, FIVEMINS, THIRTYMINS, DAYEARLY
-=======
-    	NOALRAM, ONTIME, FIVEMINS, THIRTYMINS, DAYEARLY
->>>>>>> origin/server
     }
 }
