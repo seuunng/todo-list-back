@@ -183,12 +183,13 @@ public class AuthController {
 		            usersRepository.save(newUser);
 		            return newUser;
 		        });
-		        
+
+				if (user.getLists() == null ) {
 		        ListsEntity defaultList = new ListsEntity();
 		        defaultList.setTitle("기본함");
 		        defaultList.setUser(user); // 리스트와 사용자 연결
 		        listsRepository.save(defaultList);
-		        
+				}
 		        CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(email);
 		        String jwtToken = jwtTokenProvider.generateToken(userDetails.getUsername(), userDetails.getAuthorities().stream()
 		                .map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
