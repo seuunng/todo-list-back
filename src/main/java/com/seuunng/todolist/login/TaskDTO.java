@@ -26,6 +26,7 @@ public class TaskDTO {
     private Long listNo;
     private Long smartListNo;
     private Long userNo;
+    private Boolean isTimeSet;
     
     // 필요한 다른 필드들
 }

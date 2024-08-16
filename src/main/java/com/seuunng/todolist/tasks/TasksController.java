@@ -106,13 +106,9 @@ public class TasksController {
 		        newTask.setListNo(taskDTO.getListNo());
 		        newTask.setSmartListNo(taskDTO.getSmartListNo());
 		        newTask.setTaskStatus(taskDTO.getTaskStatus());
+		        newTask.setIsTimeSet(taskDTO.getIsTimeSet());
 		        newTask.setUser(user);
 		        
-			if (newTask.getStartDate().before(new Date())) {
-			    newTask.setTaskStatus(TasksEntity.TaskStatus.OVERDUE);
-			} else {
-			    newTask.setTaskStatus(TasksEntity.TaskStatus.PENDING);
-			}
 			newTask.setUser(user);
 			
 			if (newTask.getList() == null || newTask.getSmartList() == null) {
@@ -142,9 +138,6 @@ public class TasksController {
 
 	@PutMapping("/task/{no}")
 	public ResponseEntity<TasksEntity> updateTask(@PathVariable("no") Long no, @RequestBody TasksEntity newTask) {
-		System.out.println("Received PUT request to update task with ID: " + no);
-		System.out.println("Request Body: " + newTask);
-
 		return tasksRepository.findById(no).map(task -> {
 
 			task.setTitle(newTask.getTitle());

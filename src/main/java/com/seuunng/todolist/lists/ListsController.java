@@ -38,7 +38,6 @@ public class ListsController {
 	public List<ListsEntity> getList() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserName = authentication.getName();
-//        System.out.println("authentication "+authentication);
         
         UsersEntity currentUser = usersRepository.findByEmail(currentUserName)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
