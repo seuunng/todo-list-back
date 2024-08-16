@@ -62,10 +62,12 @@ public class TasksController {
 
 			List<TasksEntity> tasks = tasksRepository.findByList(list);
 			return ResponseEntity.ok(tasks);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-		}
+		} catch (ResourceNotFoundException e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+	    }
 	}
 	@GetMapping("/bySmartList")
 	public ResponseEntity<List<TasksEntity>> getTasksBySmartListId(@RequestParam("listId") Long listId) {
@@ -78,10 +80,12 @@ public class TasksController {
 
 			System.out.println("tasks : "+tasks);
 			return ResponseEntity.ok(tasks);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-		}
+		} catch (ResourceNotFoundException e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+	    }
 	}
 	@PostMapping(value = "/task", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<?> addTask(@RequestBody TaskDTO taskDTO, Authentication authentication) {
@@ -101,6 +105,7 @@ public class TasksController {
 		        newTask.setIsNotified(taskDTO.getIsNotified());
 		        newTask.setListNo(taskDTO.getListNo());
 		        newTask.setSmartListNo(taskDTO.getSmartListNo());
+		        newTask.setTaskStatus(taskDTO.getTaskStatus());
 		        newTask.setUser(user);
 		        
 			if (newTask.getStartDate().before(new Date())) {
@@ -110,24 +115,7 @@ public class TasksController {
 			}
 			newTask.setUser(user);
 			
-			if (newTask.getList() == null || newTask.getList().getNo() == null) {
-				ListsEntity defaultList = listsRepository.findByUserAndTitle(user, "첫번째 목록")
-                        .orElseGet(() -> {
-                        	ListsEntity newList = new ListsEntity();
-                            newList.setTitle("첫번째 목록");
-                            newList.setUser(user);
-                            newList.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-                            newList.setIsDeleted(false);
-                            return listsRepository.save(newList);
-                        });
-                newTask.setList(defaultList);
-            } else {
-            	ListsEntity list = listsRepository.findById(newTask.getList().getNo())
-                        .orElseThrow(() -> new ResourceNotFoundException("List not found"));
-                newTask.setList(list);
-            }
-			
-			if (newTask.getSmartList() == null || newTask.getSmartList().getNo() == null) {
+			if (newTask.getList() == null || newTask.getSmartList() == null) {
 				SmartListsEntity defaultList = smartListsRepository.findByUserAndTitle(user, "기본함")
                         .orElseGet(() -> {
                         	SmartListsEntity newList = new SmartListsEntity();
@@ -139,9 +127,9 @@ public class TasksController {
                         });
                 newTask.setSmartList(defaultList);
             } else {
-            	SmartListsEntity list = smartListsRepository.findById(newTask.getSmartList().getNo())
+            	ListsEntity list = listsRepository.findById(newTask.getList().getNo())
                         .orElseThrow(() -> new ResourceNotFoundException("List not found"));
-                newTask.setSmartList(list);
+                newTask.setList(list);
             }
 			
 			TasksEntity task = tasksRepository.save(newTask);
@@ -168,7 +156,7 @@ public class TasksController {
 			task.setIsRepeated(newTask.getIsRepeated());
 			task.setIsNotified(newTask.getIsNotified());
 			task.setTaskStatus(newTask.getTaskStatus());
-			task.setTaskStatus(newTask.getTaskStatus());
+			task.setIsTimeSet(newTask.getIsTimeSet());
 			if (newTask.getList() != null) {
 				ListsEntity list = listsRepository.findById(newTask.getList().getNo())
 						.orElseThrow(() -> new ResourceNotFoundException("List not found"));
@@ -202,7 +190,7 @@ public class TasksController {
 		    response.put("taskStatus", request.getStatus().name());
         return ResponseEntity.ok(response);
 	}
-	
+	//
 	@GetMapping("/default")
 	public List<TasksEntity> getDefaultList() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -238,7 +226,7 @@ public class TasksController {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
 
-        // 현재 날짜를 기준으로 오늘의 자정 시간을 가져옵니다.
+        // 현재 날짜를 기준으로 오늘의 자정 시간을 가져옵니다. (14일 00:00:00)
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
@@ -246,13 +234,14 @@ public class TasksController {
         calendar.set(Calendar.MILLISECOND, 0);
         Timestamp todayStart = new Timestamp(calendar.getTimeInMillis());
 
-        Timestamp today = new Timestamp(System.currentTimeMillis());
-        // 내일의 자정 시간 (내일의 시작 시간)
+//         내일의 자정 시간 (15일 00:00:00)
         calendar.add(Calendar.DAY_OF_YEAR, 1);
         Timestamp tomorrowStart = new Timestamp(calendar.getTimeInMillis());
-
+        
         // 내일의 끝 시간 (모레 자정 전까지)
+        // 내일의 자정 전 (15일 23:59:59)
         calendar.add(Calendar.DAY_OF_YEAR, 1);
+        calendar.add(Calendar.SECOND, -1);
         Timestamp tomorrowEnd = new Timestamp(calendar.getTimeInMillis());
         
         //내일까지 해야할일, 오늘 포함 

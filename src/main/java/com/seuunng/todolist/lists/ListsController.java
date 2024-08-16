@@ -84,8 +84,12 @@ public class ListsController {
 
 	@DeleteMapping("/list/{no}")
 	public ResponseEntity<?> deleteList(@PathVariable("no") Long no) {
-		try { tasksRepository.deleteByList(no);
+		  System.out.println("deleteList 실행");
+		try { tasksRepository.deleteByListId(no);
 			  listsRepository.deleteById(no);
+			  
+			  System.out.println("deleteList번호"+no);
+			  
 			return ResponseEntity.ok().build();
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());

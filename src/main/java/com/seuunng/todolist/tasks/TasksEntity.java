@@ -50,7 +50,7 @@ public class TasksEntity {
     
     @Column(name = "date_status", columnDefinition = "ENUM('DATE', 'PERIOD') DEFAULT 'DATE'")
     @Enumerated(EnumType.STRING)
-    private  DateStatus dateStatus = DateStatus.DATE;
+    private DateStatus dateStatus = DateStatus.DATE;
     
     @Column(name = "is_repeated", columnDefinition = "ENUM('NOREPEAT', 'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY')")
     @Enumerated(EnumType.STRING)
@@ -66,7 +66,10 @@ public class TasksEntity {
 
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp createdAt;
-
+    
+    @Column(name = "is_timeSet")
+    private Boolean isTimeSet = false;
+    
 //    @ManyToOne
 //    @JoinColumn(name = "secsion_no")
 //    private SectionEntity section;
