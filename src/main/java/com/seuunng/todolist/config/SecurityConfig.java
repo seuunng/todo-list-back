@@ -72,7 +72,8 @@ public class SecurityConfig {
 		CorsConfiguration config = new CorsConfiguration();
 
 		config.setAllowCredentials(true);
-		config.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+		config.setAllowedOrigins(Arrays.asList("http://localhost:3000",
+		        "https://web-todolistproject-lzy143lgf0f1c3f8.sel4.cloudtype.app"));
 		config.setAllowedMethods(Arrays.asList("HEAD", "POST", "GET", "DELETE", "PUT"));
 		config.setAllowedHeaders(Arrays.asList("*"));
 
