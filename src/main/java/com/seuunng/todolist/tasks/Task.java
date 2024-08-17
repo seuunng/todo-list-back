@@ -11,7 +11,6 @@ public class Task {
 	        this.content = content;
 	    }
 
-	    // Getters and setters
 	    public Long getNo() {
 	        return no;
 	    }
