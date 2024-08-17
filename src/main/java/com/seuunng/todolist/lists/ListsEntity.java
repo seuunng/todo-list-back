@@ -47,12 +47,12 @@ public class ListsEntity {
     private Timestamp createdAt;
 
     @ManyToOne
-    @JoinColumn(name = "user_no")
-    @JsonBackReference
+    @JoinColumn(name = "user_id")
+    @JsonBackReference(value = "user-lists")
     private UsersEntity user;
     
     @OneToMany(mappedBy = "list", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JsonManagedReference
+    @JsonManagedReference(value = "tasks-list")  
     private List<TasksEntity> tasks;
     
     @Column(name = "is_deleted", nullable = false)

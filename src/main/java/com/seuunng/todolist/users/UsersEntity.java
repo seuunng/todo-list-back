@@ -26,6 +26,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -54,6 +55,7 @@ public class UsersEntity implements UserDetails {
 	private String nickname;
     
     @Column(nullable = true)
+
 	private String password;
     
 //    @Column(nullable = false)
@@ -69,7 +71,7 @@ public class UsersEntity implements UserDetails {
 //	@JsonIgnore
 //	@Enumerated(EnumType.STRING)
 //	private ShareStatus shareStatus;
-	
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
 	private Date created_at;
@@ -125,15 +127,15 @@ public class UsersEntity implements UserDetails {
         return true;
     }
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JsonManagedReference
+    @JsonManagedReference(value = "user-lists")
     private List<ListsEntity> lists;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JsonBackReference
+    @JsonManagedReference(value = "user-tasks")
     private List<TasksEntity> tasks;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JsonManagedReference
+    @JsonManagedReference(value = "user-smartLists")
     private List<SmartListsEntity> smartList;
 
 }

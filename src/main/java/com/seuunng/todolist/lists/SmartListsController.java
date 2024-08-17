@@ -38,57 +38,14 @@ public class SmartListsController {
 	public List<SmartListsEntity> getList() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserName = authentication.getName();
-//        System.out.println("authentication "+authentication);
         
         UsersEntity currentUser = usersRepository.findByEmail(currentUserName)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         
 		List<SmartListsEntity> lists = smartListsRepository.findByUserId(currentUser.getId());
-//		System.out.println("Lists: " + lists);
 		return lists;
 	}
 
-	@PostMapping(value = "/list", consumes = "application/json", produces = "application/json")
-	public ResponseEntity<?> addList(@RequestBody SmartListsEntity newList, Authentication authentication) {
-		try {
-			CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-			UsersEntity user = userDetails.getUser();
-			newList.setUser(user);
-			
-			SmartListsEntity list = smartListsRepository.save(newList);
-		return ResponseEntity.ok(list);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("addList Error: " + e.getMessage());
-		}
-	}
+	
 
-	@PutMapping("/list/{no}")
-	public ResponseEntity<SmartListsEntity> updateList(@PathVariable("no") Long no, @RequestBody SmartListsEntity newList) {
-		System.out.println("Received PUT request to update task with ID: " + no);
-		System.out.println("Request Body: " + newList);
-
-		return smartListsRepository.findById(no).map(list -> {
-			list.setTitle(newList.getTitle());
-			list.setIcon(newList.getIcon());
-			list.setColor(newList.getColor());
-			list.setCreatedAt(newList.getCreatedAt());
-			list.setIsDeleted(newList.getIsDeleted());
-
-			smartListsRepository.save(list);
-			System.out.println("Lists updated: " + list);
-
-			return ResponseEntity.ok(list);
-		}).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
-	}
-
-	@DeleteMapping("/list/{no}")
-	public ResponseEntity<?> deleteList(@PathVariable("no") Long no) {
-		try { tasksRepository.deleteByList(no);
-			smartListsRepository.deleteById(no);
-			return ResponseEntity.ok().build();
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-		}
-	}
 }
