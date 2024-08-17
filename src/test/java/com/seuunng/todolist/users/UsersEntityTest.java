@@ -15,7 +15,6 @@ public class UsersEntityTest {
 
     @Test
     public void testCreateUser() {
-<<<<<<< HEAD
     	String userEmail = "guest@example.com";
     	 
     	UsersEntity existingUser = usersRepository.findByEmail(userEmail).orElse(null);
@@ -24,36 +23,18 @@ public class UsersEntityTest {
              user.setNickname("guest");
              user.setEmail("guest@example.com");
              user.setPassword("password");
-             user.setRole("ADMIN");
-=======
-    	String userId = "testuser";
-    	 
-    	UsersEntity existingUser = usersRepository.findById(userId).orElse(null);
-        if (existingUser == null) {
-            UsersEntity user = new UsersEntity();
-            user.setId(userId);
-            user.setNickname("Test User");
-            user.setPassword("password");
->>>>>>> origin/server
+//             user.setRole("ADMIN");
 
         UsersEntity savedUser = usersRepository.save(user);
 
         assertThat(savedUser).isNotNull();
-<<<<<<< HEAD
+
         assertThat(savedUser.getId()).isNotNull();
         assertThat(savedUser.getEmail()).isEqualTo("guest@example.com");
         assertThat(savedUser.getNickname()).isEqualTo("guest");
         } else {
             // User already exists, handle accordingly
             System.out.println("User already exists: " + userEmail);
-=======
-        assertThat(savedUser.getNo()).isNotNull();
-        assertThat(savedUser.getId()).isEqualTo("testuser");
-        assertThat(savedUser.getNickname()).isEqualTo("Test User");
-        } else {
-            // User already exists, handle accordingly
-            System.out.println("User already exists: " + userId);
->>>>>>> origin/server
         }
     }
 }
