@@ -21,13 +21,10 @@ bin/
 .idea
 *.iws
 *.iml
-<<<<<<< HEAD
 *.config
 *.env
 *.properties
 
-=======
->>>>>>> origin/server
 *.ipr
 out/
 !**/src/main/**/out/
