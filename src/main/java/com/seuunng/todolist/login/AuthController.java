@@ -154,7 +154,6 @@ public class AuthController {
 
             SmartListsEntity defaultList_deleted = new SmartListsEntity();
             defaultList_deleted.setTitle("취소한 할 일");
-            defaultList_deleted.setIcon("IoClose");
             defaultList_deleted.setUser(user);
             defaultList_deleted.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
             defaultList_deleted.setIsDeleted(false);
