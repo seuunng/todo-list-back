@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.json.JSONObject;
@@ -160,6 +161,29 @@ public class AuthController {
             smartListsRepository.save(defaultList_deleted);
 		}
 
+		return ResponseEntity.status(201).build();
+	}
+
+	@PostMapping("/updatePW")
+	public ResponseEntity<?> updatePW(@RequestBody UpdatePWRequest updatePWRequest) {
+		
+		Optional<UsersEntity> userOptional = usersRepository.findByEmail(updatePWRequest.getEmail());
+		
+		if (userOptional.isEmpty()) {
+		   return ResponseEntity.badRequest().body("존재하지 않는 이메일입니다.");
+		}
+		
+		UsersEntity user = userOptional.get();
+
+		// 현재 비밀번호와 새 비밀번호가 같은지 확인
+	    if (passwordEncoder.matches(updatePWRequest.getNewPassword(), user.getPassword())) {
+	        return ResponseEntity.badRequest().body("새 비밀번호가 기존 비밀번호와 같습니다. 다른 비밀번호를 입력하세요.");
+	    }
+
+	    // 새 비밀번호로 업데이트
+	    user.setPassword(passwordEncoder.encode(updatePWRequest.getNewPassword()));
+	    usersRepository.save(user);
+		
 		return ResponseEntity.status(201).build();
 	}
 
