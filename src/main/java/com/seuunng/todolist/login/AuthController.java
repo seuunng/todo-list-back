@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.GeneralSecurityException;
+import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.HashMap;
@@ -17,6 +18,8 @@ import java.util.stream.Collectors;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -46,7 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "https://web-todolistproject-lzy143lgf0f1c3f8.sel4.cloudtype.app"})
 @Slf4j
 public class AuthController {
 
@@ -66,9 +69,16 @@ public class AuthController {
 	private UserDetailsService userDetailsService;
 	@Autowired
 	private UsersService userService;
+	@Autowired
+    private final JavaMailSender mailSender;
 
 	private static final String CLIENT_ID = "834919745048-tiu8j0gnrtsl3f72m5cdkbsk05basoqo.apps.googleusercontent.com";
-
+	@Autowired
+    public AuthController(JavaMailSender mailSender, UsersRepository usersRepository, PasswordEncoder passwordEncoder) {
+        this.mailSender = mailSender;
+        this.usersRepository = usersRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request,
 			HttpServletResponse response) {
@@ -186,6 +196,50 @@ public class AuthController {
 		
 		return ResponseEntity.status(201).build();
 	}
+	
+	 @PostMapping("/findPW")
+	    public ResponseEntity<?> findPassword(@RequestBody EmailRequest emailRequest) {
+	        Optional<UsersEntity> userOptional = usersRepository.findByEmail(emailRequest.getEmail());
+	        
+	        if (userOptional.isEmpty()) {
+	            return ResponseEntity.badRequest().body("존재하지 않는 이메일입니다.");
+	        }
+
+	        UsersEntity user = userOptional.get();
+	        
+	        // 랜덤 비밀번호 생성
+	        String newPassword = generateRandomPassword();
+	        user.setPassword(passwordEncoder.encode(newPassword));
+	        usersRepository.save(user);
+
+	        // 이메일 발송
+	        sendEmail(user.getEmail(), newPassword);
+
+	        return ResponseEntity.ok("임시 비밀번호가 이메일로 전송되었습니다.");
+	    }
+
+	    private String generateRandomPassword() {
+	        int length = 10;
+	        String charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	        SecureRandom random = new SecureRandom();
+	        StringBuilder password = new StringBuilder();
+
+	        for (int i = 0; i < length; i++) {
+	            int index = random.nextInt(charSet.length());
+	            password.append(charSet.charAt(index));
+	        }
+
+	        return password.toString();
+	    }
+
+	    private void sendEmail(String to, String newPassword) {
+	        SimpleMailMessage message = new SimpleMailMessage();
+	        message.setTo(to);
+	        message.setSubject("임시 비밀번호 안내");
+	        message.setText("임시 비밀번호는 " + newPassword + " 입니다. 로그인 후 비밀번호를 변경해주세요.");
+	        //연결 도메인 추가@!
+	        mailSender.send(message);
+	    }
 
 	@PostMapping("/guest-login")
 	public ResponseEntity<?> guestLogin() {

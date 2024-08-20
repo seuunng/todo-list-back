@@ -22,7 +22,8 @@ public class WebConfig {
 			public void addCorsMappings(CorsRegistry registry) {
 				registry.addMapping("/**")
 						.allowCredentials(true)
-						.allowedOrigins("http://localhost:3000",
+						.allowedOrigins(
+								"http://localhost:3000",
 	                            "https://web-todolistproject-lzy143lgf0f1c3f8.sel4.cloudtype.app"  // 클라우드타입 URL 추가
 		                        )
 						.allowedMethods("OPTIONS", "GET", "POST", "PUT", "DELETE")
@@ -31,3 +32,4 @@ public class WebConfig {
 		};
 	}
 }
+

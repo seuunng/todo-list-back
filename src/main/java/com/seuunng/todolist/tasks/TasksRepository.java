@@ -24,6 +24,11 @@ public interface TasksRepository extends JpaRepository<TasksEntity, Long> {
 	@Query("DELETE FROM TasksEntity t WHERE t.list.no = :listNo")
 	void deleteByListId(@Param("listNo") Long listNo);
 	
+	@Transactional
+	@Modifying
+	@Query("UPDATE TasksEntity t SET t.taskStatus = 'DELETED' WHERE t.list.no = :listNo")
+	void markTasksAsDeletedByListId(@Param("listNo") Long listNo);
+	
 	@Query("SELECT t FROM TasksEntity t WHERE t.user.id = :userId")
     List<TasksEntity> findByUserId(@Param("userId") Long user);
 	

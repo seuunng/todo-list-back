@@ -51,7 +51,7 @@ public class ListsEntity {
     @JsonBackReference(value = "user-lists")
     private UsersEntity user;
     
-    @OneToMany(mappedBy = "list", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "list", cascade = CascadeType.ALL,  orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference(value = "tasks-list")  
     private List<TasksEntity> tasks;
     

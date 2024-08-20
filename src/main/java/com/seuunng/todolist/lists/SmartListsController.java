@@ -25,7 +25,7 @@ import com.seuunng.todolist.users.UsersRepository;
 
 @RestController
 @RequestMapping("/smartLists")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins =  {"http://localhost:3000", "https://web-todolistproject-lzy143lgf0f1c3f8.sel4.cloudtype.app"})
 public class SmartListsController {
 	@Autowired
 	private UsersRepository usersRepository;

@@ -25,7 +25,7 @@ import com.seuunng.todolist.users.UsersRepository;
 
 @RestController
 @RequestMapping("/lists")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins =  {"http://localhost:3000", "https://web-todolistproject-lzy143lgf0f1c3f8.sel4.cloudtype.app"})
 public class ListsController {
 	@Autowired
 	private UsersRepository usersRepository;
@@ -73,6 +73,13 @@ public class ListsController {
 			list.setColor(newList.getColor());
 			list.setCreatedAt(newList.getCreatedAt());
 			list.setIsDeleted(newList.getIsDeleted());
+			// 리스트가 논리적으로 삭제되는 경우, 속한 모든 테스크의 상태도 DELETED로 변경
+	        if (Boolean.TRUE.equals(newList.getIsDeleted())) {
+	            list.setIsDeleted(true);
+	            tasksRepository.markTasksAsDeletedByListId(no);
+	        } else {
+	            list.setIsDeleted(false);
+	        }
 
 			listsRepository.save(list);
 			System.out.println("Lists updated: " + list);
@@ -83,12 +90,10 @@ public class ListsController {
 
 	@DeleteMapping("/list/{no}")
 	public ResponseEntity<?> deleteList(@PathVariable("no") Long no) {
-		  System.out.println("deleteList 실행");
-		try { tasksRepository.deleteByListId(no);
-			  listsRepository.deleteById(no);
-			  
-			  System.out.println("deleteList번호"+no);
-			  
+		  System.out.println("deleteList 실행"+no);
+		try { 
+			tasksRepository.markTasksAsDeletedByListId(no);
+			listsRepository.deleteById(no);
 			return ResponseEntity.ok().build();
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());

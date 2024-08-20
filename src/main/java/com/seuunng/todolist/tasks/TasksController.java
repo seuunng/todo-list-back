@@ -35,7 +35,7 @@ import com.seuunng.todolist.users.UsersRepository;
 
 @RestController
 @RequestMapping("/tasks")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "https://web-todolistproject-lzy143lgf0f1c3f8.sel4.cloudtype.app"})
 public class TasksController {
 	@Autowired
 	private UsersRepository usersRepository;
@@ -183,7 +183,7 @@ public class TasksController {
 		    response.put("taskStatus", request.getStatus().name());
         return ResponseEntity.ok(response);
 	}
-	//
+	
 	@GetMapping("/default")
 	public List<TasksEntity> getDefaultList() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -218,7 +218,6 @@ public class TasksController {
         UsersEntity currentUser = usersRepository.findByEmail(currentUserName)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-
         // 현재 날짜를 기준으로 오늘의 자정 시간을 가져옵니다. (14일 00:00:00)
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -227,7 +226,7 @@ public class TasksController {
         calendar.set(Calendar.MILLISECOND, 0);
         Timestamp todayStart = new Timestamp(calendar.getTimeInMillis());
 
-//         내일의 자정 시간 (15일 00:00:00)
+        // 내일의 자정 시간 (15일 00:00:00)
         calendar.add(Calendar.DAY_OF_YEAR, 1);
         Timestamp tomorrowStart = new Timestamp(calendar.getTimeInMillis());
         
