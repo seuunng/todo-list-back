@@ -98,15 +98,15 @@ public class AuthController {
 			CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 			UsersEntity user = userDetails.getUser();
 			
-			  if (user.getDefaultListNo() == null) {
-				  Optional<ListsEntity> defaultListOptional = listsRepository.findByUserAndTitle(user, "기본함");
-		          System.out.println("defaultListOptional"+defaultListOptional);  
-				  if (defaultListOptional.isPresent()) {
-		            	ListsEntity defaultList = defaultListOptional.get();
-		                user.setDefaultListNo(defaultList.getNo());
-		                usersRepository.save(user); // 변경사항 저장
-		            }
-		        }
+//			  if (user.getDefaultListNo() == null) {
+//				  Optional<ListsEntity> defaultListOptional = listsRepository.findByUserAndTitle(user, "기본함");
+//		          System.out.println("defaultListOptional"+defaultListOptional);  
+//				  if (defaultListOptional.isPresent()) {
+//		            	ListsEntity defaultList = defaultListOptional.get();
+//		                user.setDefaultListNo(defaultList.getNo());
+//		                usersRepository.save(user); // 변경사항 저장
+//		            }
+//		        }
 			  
 			String jwtToken = jwtTokenProvider.generateToken(userDetails.getUsername(), userDetails.getAuthorities()
 					.stream().map(auth -> auth.getAuthority()).collect(Collectors.toList()));
@@ -371,6 +371,16 @@ public class AuthController {
 				defaultList_deleted.setIsDeleted(false);
 				smartListsRepository.save(defaultList_deleted);
 			}
+			
+			user = usersRepository.findByEmail(email).orElseGet(() -> {
+				UsersEntity newUser = new UsersEntity();
+				newUser.setEmail(email);
+				newUser.setNickname(name);
+				newUser.setPassword(""); // 임시 비밀번호 설정
+				usersRepository.save(newUser);
+				return newUser;
+			});
+			
 			CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(email);
 			String jwtToken = jwtTokenProvider.generateToken(userDetails.getUsername(), userDetails.getAuthorities()
 					.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
