@@ -40,34 +40,23 @@ import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @EnableWebSecurity
-@Slf4j
 public class SecurityConfig {
 
 	private final CustomUserDetailsService userDetailsService;
-	private final ObjectMapper objectMapper;
-//	private final AuthSuccessHandler authSuccessHandler;
 
-	@Autowired
+	@Autowired //JWT 토큰을 생성하고, 유효성을 검사하는 클래스 
 	private JwtTokenProvider jwtTokenProvider;
-//    @Autowired
-//    private OAuth2UserService oauth2UserService;
     
 	@Bean
 	public JwtAuthenticationFilter jwtAuthenticationFilter() {
 		return new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
 	}
-//    @Autowired
-//    private DataSource dataSource;
 
-	public SecurityConfig(CustomUserDetailsService userDetailsService, ObjectMapper objectMapper
-			) {
-
+	public SecurityConfig(CustomUserDetailsService userDetailsService) {
 		this.userDetailsService = userDetailsService;
-		this.objectMapper = objectMapper;
-//		this.authSuccessHandler = authSuccessHandler;
 	}
 
-	@Bean
+	@Bean //CORS(Cross-Origin Resource Sharing) 설정을 정의
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
 
@@ -82,7 +71,7 @@ public class SecurityConfig {
 		return source;
 	}
 
-	@Bean
+	@Bean //애플리케이션의 보안 필터 체인을 정의
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.csrf(csrf -> csrf.disable()).httpBasic(httpBasic -> httpBasic.disable())
 				.formLogin(formLogin -> formLogin.disable())
@@ -119,32 +108,25 @@ public class SecurityConfig {
 
 		return http.build();
 	}
-//    @Bean
-//    public OAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService() {
-//        DefaultOAuth2UserService delegate = new DefaultOAuth2UserService();
-//        return request -> {
-//            OAuth2User user = delegate.loadUser(request);
-//            System.out.println("OAuth2UserService user정보"+ user);
-//            return user;
-//        };
-//    }
-	@Bean
+	
+	@Bean //보안 컨텍스트 저장소
 	public SecurityContextRepository securityContextRepository() {
 		return new HttpSessionSecurityContextRepository();
 	}
 
-	@Bean
+	@Bean //비밀번호를 암호화
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 
-	@Bean
+	@Bean //인증 관리자를 설정
 	public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-		return http.getSharedObject(AuthenticationManagerBuilder.class).authenticationProvider(authenticationProvider())
+		return http.getSharedObject(AuthenticationManagerBuilder.class)
+				.authenticationProvider(authenticationProvider())
 				.build();
 	}
 
-	@Bean
+	@Bean //세션 쿠키 설정을 초기화
 	public ServletContextInitializer servletContextInitializer() {
 		return new ServletContextInitializer() {
 			@Override
@@ -156,18 +138,18 @@ public class SecurityConfig {
 		};
 	}
 
-	@Bean
+	@Bean //정적 리소스에 대한 보안 설정을 무시하도록 설정
 	public WebSecurityCustomizer webSecurityCustomizer() {
 		return (web) -> web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
 	}
 
 
-	@Bean
+	@Bean //커스텀 인증 제공자를 설정
 	public AuthenticationProvider authenticationProvider() {
 		return new CustomAuthenticationProvider();
 	}
 
-	@Bean
+	@Bean //인증 실패 시 발생하는 예외를 처리
 	public AuthenticationFailureHandler authenticationFailureHandler() {
 		return (request, response, exception) -> {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

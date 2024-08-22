@@ -97,16 +97,6 @@ public class AuthController {
 
 			CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 			UsersEntity user = userDetails.getUser();
-			
-//			  if (user.getDefaultListNo() == null) {
-//				  Optional<ListsEntity> defaultListOptional = listsRepository.findByUserAndTitle(user, "기본함");
-//		          System.out.println("defaultListOptional"+defaultListOptional);  
-//				  if (defaultListOptional.isPresent()) {
-//		            	ListsEntity defaultList = defaultListOptional.get();
-//		                user.setDefaultListNo(defaultList.getNo());
-//		                usersRepository.save(user); // 변경사항 저장
-//		            }
-//		        }
 			  
 			String jwtToken = jwtTokenProvider.generateToken(userDetails.getUsername(), userDetails.getAuthorities()
 					.stream().map(auth -> auth.getAuthority()).collect(Collectors.toList()));

@@ -12,20 +12,19 @@ public class WebConfig {
 	@Bean
 	public WebMvcConfigurer corsConfig() {
 		return new WebMvcConfigurer() {
-			@Override
+			@Override // 정적 리소스를 처리하기 위한 설정
 			public void addResourceHandlers(ResourceHandlerRegistry registry) {
 				registry.addResourceHandler("/**")
 						.addResourceLocations("classpath:/static/");
 			}
 
-			@Override
+			@Override // CORS(Cross-Origin Resource Sharing) 설정을 정의
 			public void addCorsMappings(CorsRegistry registry) {
 				registry.addMapping("/**")
 						.allowCredentials(true)
 						.allowedOrigins(
 								"http://localhost:3000",
-	                            "https://web-todolistproject-lzy143lgf0f1c3f8.sel4.cloudtype.app"  // 클라우드타입 URL 추가
-		                        )
+	                            "https://web-todolistproject-lzy143lgf0f1c3f8.sel4.cloudtype.app")
 						.allowedMethods("OPTIONS", "GET", "POST", "PUT", "DELETE")
 						.allowedHeaders("*"); // 쿠키를 허용하도록 설정
 			}
