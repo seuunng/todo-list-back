@@ -18,5 +18,5 @@ public interface ListsRepository extends JpaRepository<ListsEntity, Long>{
 	
 	@Query("SELECT l FROM ListsEntity l JOIN FETCH l.tasks WHERE l.id = :id")
 	ListsEntity findByIdWithTasks(@Param("id") Long id);
-
+	
 }

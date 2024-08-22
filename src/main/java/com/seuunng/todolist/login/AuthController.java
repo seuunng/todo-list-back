@@ -49,7 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = {"http://localhost:3000", "https://web-todolistproject-lzy143lgf0f1c3f8.sel4.cloudtype.app"})
+@CrossOrigin(origins = { "http://localhost:3000", "https://web-todolistproject-lzy143lgf0f1c3f8.sel4.cloudtype.app" })
 @Slf4j
 public class AuthController {
 
@@ -70,18 +70,21 @@ public class AuthController {
 	@Autowired
 	private UsersService userService;
 	@Autowired
-    private final JavaMailSender mailSender;
+	private final JavaMailSender mailSender;
 
 	private static final String CLIENT_ID = "834919745048-tiu8j0gnrtsl3f72m5cdkbsk05basoqo.apps.googleusercontent.com";
+
 	@Autowired
-    public AuthController(JavaMailSender mailSender, UsersRepository usersRepository, PasswordEncoder passwordEncoder) {
-        this.mailSender = mailSender;
-        this.usersRepository = usersRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+	public AuthController(JavaMailSender mailSender, UsersRepository usersRepository, PasswordEncoder passwordEncoder) {
+		this.mailSender = mailSender;
+		this.usersRepository = usersRepository;
+		this.passwordEncoder = passwordEncoder;
+	}
+
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request,
 			HttpServletResponse response) {
+		System.out.println("로그인 실행");
 		try {
 			if (loginRequest.getEmail() == null || loginRequest.getPassword() == null) {
 				throw new IllegalArgumentException("Email and password must not be null");
@@ -94,9 +97,19 @@ public class AuthController {
 
 			CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 			UsersEntity user = userDetails.getUser();
+			
+			  if (user.getDefaultListNo() == null) {
+				  Optional<ListsEntity> defaultListOptional = listsRepository.findByUserAndTitle(user, "기본함");
+		          System.out.println("defaultListOptional"+defaultListOptional);  
+				  if (defaultListOptional.isPresent()) {
+		            	ListsEntity defaultList = defaultListOptional.get();
+		                user.setDefaultListNo(defaultList.getNo());
+		                usersRepository.save(user); // 변경사항 저장
+		            }
+		        }
+			  
 			String jwtToken = jwtTokenProvider.generateToken(userDetails.getUsername(), userDetails.getAuthorities()
 					.stream().map(auth -> auth.getAuthority()).collect(Collectors.toList()));
-			System.out.println("1 Authentication Principal: " + userDetails);
 
 			return ResponseEntity.ok(new AuthResponse(user, jwtToken)); //
 
@@ -118,57 +131,56 @@ public class AuthController {
 		user.setEmail(signupRequest.getEmail());
 		user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
 
+		ListsEntity defaultList = new ListsEntity();
+		defaultList.setTitle("기본함");
+		defaultList.setUser(user); // 리스트와 사용자 연결
+		listsRepository.save(defaultList);
+		
 		usersRepository.save(user);
-
-		if (user.getLists() == null) {
-			ListsEntity defaultList = new ListsEntity();
-			defaultList.setTitle("기본함");
-			defaultList.setUser(user); // 리스트와 사용자 연결
-			listsRepository.save(defaultList);
-		}
+		
 		if (user.getSmartList() == null) {
 
-            SmartListsEntity defaultList_basic = new SmartListsEntity();
-            defaultList_basic.setTitle("모든 할 일");
-            defaultList_basic.setUser(user);
-            defaultList_basic.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
-            defaultList_basic.setIsDeleted(false);
-            smartListsRepository.save(defaultList_basic);
+			SmartListsEntity defaultList_basic = new SmartListsEntity();
+			defaultList_basic.setTitle("모든 할 일");
+			defaultList_basic.setUser(user);
+			defaultList_basic.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
+			defaultList_basic.setIsDeleted(false);
+			smartListsRepository.save(defaultList_basic);
 
-            SmartListsEntity defaultList_today = new SmartListsEntity();
-            defaultList_today.setTitle("오늘 할 일");
-            defaultList_today.setUser(user);
-            defaultList_today.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
-            defaultList_today.setIsDeleted(false);
-            smartListsRepository.save(defaultList_today);
-            
-            SmartListsEntity defaultList_tommorow = new SmartListsEntity();
-            defaultList_tommorow.setTitle("내일 할 일"); 
-            defaultList_tommorow.setUser(user);
-            defaultList_tommorow.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
-            defaultList_tommorow.setIsDeleted(false);
-            smartListsRepository.save(defaultList_tommorow);
+			SmartListsEntity defaultList_today = new SmartListsEntity();
+			defaultList_today.setTitle("오늘 할 일");
+			defaultList_today.setUser(user);
+			defaultList_today.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
+			defaultList_today.setIsDeleted(false);
+			smartListsRepository.save(defaultList_today);
 
-            SmartListsEntity defaultList_nextWeek = new SmartListsEntity();
-            defaultList_nextWeek.setTitle("다음주 할 일");
-            defaultList_nextWeek.setUser(user);
-            defaultList_nextWeek.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
-            defaultList_nextWeek.setIsDeleted(false);
-            smartListsRepository.save(defaultList_nextWeek);
-            
-            SmartListsEntity defaultList_completed = new SmartListsEntity();
-            defaultList_completed.setTitle("완료한 할 일");
-            defaultList_completed.setUser(user);
-            defaultList_completed.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
-            defaultList_completed.setIsDeleted(false);
-            smartListsRepository.save(defaultList_completed);
+			SmartListsEntity defaultList_tommorow = new SmartListsEntity();
+			defaultList_tommorow.setTitle("내일 할 일");
+			defaultList_tommorow.setUser(user);
+			defaultList_tommorow.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
+			defaultList_tommorow.setIsDeleted(false);
+			smartListsRepository.save(defaultList_tommorow);
 
-            SmartListsEntity defaultList_deleted = new SmartListsEntity();
-            defaultList_deleted.setTitle("취소한 할 일");
-            defaultList_deleted.setUser(user);
-            defaultList_deleted.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
-            defaultList_deleted.setIsDeleted(false);
-            smartListsRepository.save(defaultList_deleted);
+			SmartListsEntity defaultList_nextWeek = new SmartListsEntity();
+			defaultList_nextWeek.setTitle("다음주 할 일");
+			defaultList_nextWeek.setUser(user);
+			defaultList_nextWeek.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
+			defaultList_nextWeek.setIsDeleted(false);
+			smartListsRepository.save(defaultList_nextWeek);
+
+			SmartListsEntity defaultList_completed = new SmartListsEntity();
+			defaultList_completed.setTitle("완료한 할 일");
+			defaultList_completed.setUser(user);
+			defaultList_completed.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
+			defaultList_completed.setIsDeleted(false);
+			smartListsRepository.save(defaultList_completed);
+
+			SmartListsEntity defaultList_deleted = new SmartListsEntity();
+			defaultList_deleted.setTitle("취소한 할 일");
+			defaultList_deleted.setUser(user);
+			defaultList_deleted.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
+			defaultList_deleted.setIsDeleted(false);
+			smartListsRepository.save(defaultList_deleted);
 		}
 
 		return ResponseEntity.status(201).build();
@@ -176,70 +188,70 @@ public class AuthController {
 
 	@PostMapping("/updatePW")
 	public ResponseEntity<?> updatePW(@RequestBody UpdatePWRequest updatePWRequest) {
-		
+
 		Optional<UsersEntity> userOptional = usersRepository.findByEmail(updatePWRequest.getEmail());
-		
+
 		if (userOptional.isEmpty()) {
-		   return ResponseEntity.badRequest().body("존재하지 않는 이메일입니다.");
+			return ResponseEntity.badRequest().body("존재하지 않는 이메일입니다.");
 		}
-		
+
 		UsersEntity user = userOptional.get();
 
 		// 현재 비밀번호와 새 비밀번호가 같은지 확인
-	    if (passwordEncoder.matches(updatePWRequest.getNewPassword(), user.getPassword())) {
-	        return ResponseEntity.badRequest().body("새 비밀번호가 기존 비밀번호와 같습니다. 다른 비밀번호를 입력하세요.");
-	    }
+		if (passwordEncoder.matches(updatePWRequest.getNewPassword(), user.getPassword())) {
+			return ResponseEntity.badRequest().body("새 비밀번호가 기존 비밀번호와 같습니다. 다른 비밀번호를 입력하세요.");
+		}
 
-	    // 새 비밀번호로 업데이트
-	    user.setPassword(passwordEncoder.encode(updatePWRequest.getNewPassword()));
-	    usersRepository.save(user);
-		
+		// 새 비밀번호로 업데이트
+		user.setPassword(passwordEncoder.encode(updatePWRequest.getNewPassword()));
+		usersRepository.save(user);
+
 		return ResponseEntity.status(201).build();
 	}
-	
-	 @PostMapping("/findPW")
-	    public ResponseEntity<?> findPassword(@RequestBody EmailRequest emailRequest) {
-	        Optional<UsersEntity> userOptional = usersRepository.findByEmail(emailRequest.getEmail());
-	        
-	        if (userOptional.isEmpty()) {
-	            return ResponseEntity.badRequest().body("존재하지 않는 이메일입니다.");
-	        }
 
-	        UsersEntity user = userOptional.get();
-	        
-	        // 랜덤 비밀번호 생성
-	        String newPassword = generateRandomPassword();
-	        user.setPassword(passwordEncoder.encode(newPassword));
-	        usersRepository.save(user);
+	@PostMapping("/findPW")
+	public ResponseEntity<?> findPassword(@RequestBody EmailRequest emailRequest) {
+		Optional<UsersEntity> userOptional = usersRepository.findByEmail(emailRequest.getEmail());
 
-	        // 이메일 발송
-	        sendEmail(user.getEmail(), newPassword);
+		if (userOptional.isEmpty()) {
+			return ResponseEntity.badRequest().body("존재하지 않는 이메일입니다.");
+		}
 
-	        return ResponseEntity.ok("임시 비밀번호가 이메일로 전송되었습니다.");
-	    }
+		UsersEntity user = userOptional.get();
 
-	    private String generateRandomPassword() {
-	        int length = 10;
-	        String charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	        SecureRandom random = new SecureRandom();
-	        StringBuilder password = new StringBuilder();
+		// 랜덤 비밀번호 생성
+		String newPassword = generateRandomPassword();
+		user.setPassword(passwordEncoder.encode(newPassword));
+		usersRepository.save(user);
 
-	        for (int i = 0; i < length; i++) {
-	            int index = random.nextInt(charSet.length());
-	            password.append(charSet.charAt(index));
-	        }
+		// 이메일 발송
+		sendEmail(user.getEmail(), newPassword);
 
-	        return password.toString();
-	    }
+		return ResponseEntity.ok("임시 비밀번호가 이메일로 전송되었습니다.");
+	}
 
-	    private void sendEmail(String to, String newPassword) {
-	        SimpleMailMessage message = new SimpleMailMessage();
-	        message.setTo(to);
-	        message.setSubject("임시 비밀번호 안내");
-	        message.setText("임시 비밀번호는 " + newPassword + " 입니다. 로그인 후 비밀번호를 변경해주세요.");
-	        //연결 도메인 추가@!
-	        mailSender.send(message);
-	    }
+	private String generateRandomPassword() {
+		int length = 10;
+		String charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+		SecureRandom random = new SecureRandom();
+		StringBuilder password = new StringBuilder();
+
+		for (int i = 0; i < length; i++) {
+			int index = random.nextInt(charSet.length());
+			password.append(charSet.charAt(index));
+		}
+
+		return password.toString();
+	}
+
+	private void sendEmail(String to, String newPassword) {
+		SimpleMailMessage message = new SimpleMailMessage();
+		message.setTo(to);
+		message.setSubject("임시 비밀번호 안내");
+		message.setText("임시 비밀번호는 " + newPassword + " 입니다. 로그인 후 비밀번호를 변경해주세요.");
+		// 연결 도메인 추가@!
+		mailSender.send(message);
+	}
 
 	@PostMapping("/guest-login")
 	public ResponseEntity<?> guestLogin() {
@@ -312,52 +324,52 @@ public class AuthController {
 			if (user.getLists() == null) {
 				ListsEntity defaultList = new ListsEntity();
 				defaultList.setTitle("기본함");
-				defaultList.setUser(user); 
+				defaultList.setUser(user);
 				listsRepository.save(defaultList);
 			}
 			if (user.getSmartList() == null) {
 
-				 SmartListsEntity defaultList_basic = new SmartListsEntity();
-		            defaultList_basic.setTitle("모든 할 일");
-		            defaultList_basic.setUser(user);
-		            defaultList_basic.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
-		            defaultList_basic.setIsDeleted(false);
-		            smartListsRepository.save(defaultList_basic);
+				SmartListsEntity defaultList_basic = new SmartListsEntity();
+				defaultList_basic.setTitle("모든 할 일");
+				defaultList_basic.setUser(user);
+				defaultList_basic.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
+				defaultList_basic.setIsDeleted(false);
+				smartListsRepository.save(defaultList_basic);
 
-		            SmartListsEntity defaultList_today = new SmartListsEntity();
-		            defaultList_today.setTitle("오늘 할 일");
-		            defaultList_today.setUser(user);
-		            defaultList_today.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
-		            defaultList_today.setIsDeleted(false);
-		            smartListsRepository.save(defaultList_today);
-		            
-		            SmartListsEntity defaultList_tommorow = new SmartListsEntity();
-		            defaultList_tommorow.setTitle("내일 할 일");
-		            defaultList_tommorow.setUser(user);
-		            defaultList_tommorow.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
-		            defaultList_tommorow.setIsDeleted(false);
-		            smartListsRepository.save(defaultList_tommorow);
+				SmartListsEntity defaultList_today = new SmartListsEntity();
+				defaultList_today.setTitle("오늘 할 일");
+				defaultList_today.setUser(user);
+				defaultList_today.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
+				defaultList_today.setIsDeleted(false);
+				smartListsRepository.save(defaultList_today);
 
-		            SmartListsEntity defaultList_nextWeek = new SmartListsEntity();
-		            defaultList_nextWeek.setTitle("다음주 할 일");
-		            defaultList_nextWeek.setUser(user);
-		            defaultList_nextWeek.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
-		            defaultList_nextWeek.setIsDeleted(false);
-		            smartListsRepository.save(defaultList_nextWeek);
-		            
-		            SmartListsEntity defaultList_completed = new SmartListsEntity();
-		            defaultList_completed.setTitle("완료한 할 일");
-		            defaultList_completed.setUser(user);
-		            defaultList_completed.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
-		            defaultList_completed.setIsDeleted(false);
-		            smartListsRepository.save(defaultList_completed);
+				SmartListsEntity defaultList_tommorow = new SmartListsEntity();
+				defaultList_tommorow.setTitle("내일 할 일");
+				defaultList_tommorow.setUser(user);
+				defaultList_tommorow.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
+				defaultList_tommorow.setIsDeleted(false);
+				smartListsRepository.save(defaultList_tommorow);
 
-		            SmartListsEntity defaultList_deleted = new SmartListsEntity();
-		            defaultList_deleted.setTitle("취소한 할 일");
-		            defaultList_deleted.setUser(user);
-		            defaultList_deleted.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
-		            defaultList_deleted.setIsDeleted(false);
-		            smartListsRepository.save(defaultList_deleted);
+				SmartListsEntity defaultList_nextWeek = new SmartListsEntity();
+				defaultList_nextWeek.setTitle("다음주 할 일");
+				defaultList_nextWeek.setUser(user);
+				defaultList_nextWeek.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
+				defaultList_nextWeek.setIsDeleted(false);
+				smartListsRepository.save(defaultList_nextWeek);
+
+				SmartListsEntity defaultList_completed = new SmartListsEntity();
+				defaultList_completed.setTitle("완료한 할 일");
+				defaultList_completed.setUser(user);
+				defaultList_completed.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
+				defaultList_completed.setIsDeleted(false);
+				smartListsRepository.save(defaultList_completed);
+
+				SmartListsEntity defaultList_deleted = new SmartListsEntity();
+				defaultList_deleted.setTitle("취소한 할 일");
+				defaultList_deleted.setUser(user);
+				defaultList_deleted.setCreatedAt(Timestamp.from(Instant.now())); // 적절한 생성일 설정
+				defaultList_deleted.setIsDeleted(false);
+				smartListsRepository.save(defaultList_deleted);
 			}
 			CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(email);
 			String jwtToken = jwtTokenProvider.generateToken(userDetails.getUsername(), userDetails.getAuthorities()
@@ -395,10 +407,8 @@ public class AuthController {
 
 			return ResponseEntity.ok(Map.of("accessToken", newAccessToken, "refreshToken", newRefreshToken));
 		} else {
-	        return ResponseEntity.status(303)
-	                .header("Location", "/mainAccountInfo")
-	                .build();
-	    } 
+			return ResponseEntity.status(303).header("Location", "/mainAccountInfo").build();
+		}
 	}
 
 	@GetMapping("/session")

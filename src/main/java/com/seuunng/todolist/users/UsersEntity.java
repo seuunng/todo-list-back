@@ -55,7 +55,6 @@ public class UsersEntity implements UserDetails {
 	private String nickname;
     
     @Column(nullable = true)
-
 	private String password;
     
 //    @Column(nullable = false)
@@ -79,6 +78,9 @@ public class UsersEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private Role role = Role.ROLE_USER;
+    
+    @Column(name = "default_iist_no")
+    private Long defaultListNo;
     
     @JsonIgnore
     private Collection<? extends GrantedAuthority> authorities;
