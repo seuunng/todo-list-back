@@ -50,7 +50,6 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin(origins = { "http://localhost:3000", "https://web-todolistproject-lzy143lgf0f1c3f8.sel4.cloudtype.app" })
-@Slf4j
 public class AuthController {
 
 	@Autowired
@@ -72,9 +71,6 @@ public class AuthController {
 	@Autowired
 	private final JavaMailSender mailSender;
 
-	private static final String CLIENT_ID = "834919745048-tiu8j0gnrtsl3f72m5cdkbsk05basoqo.apps.googleusercontent.com";
-
-	@Autowired
 	public AuthController(JavaMailSender mailSender, UsersRepository usersRepository, PasswordEncoder passwordEncoder) {
 		this.mailSender = mailSender;
 		this.usersRepository = usersRepository;
@@ -172,7 +168,6 @@ public class AuthController {
 			defaultList_deleted.setIsDeleted(false);
 			smartListsRepository.save(defaultList_deleted);
 		}
-
 		return ResponseEntity.status(201).build();
 	}
 

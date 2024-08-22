@@ -90,7 +90,6 @@ public class ListsController {
 
 	@DeleteMapping("/list/{no}")
 	public ResponseEntity<?> deleteList(@PathVariable("no") Long no) {
-		  System.out.println("deleteList 실행"+no);
 		try { 
 			tasksRepository.markTasksAsDeletedByListId(no);
 			listsRepository.deleteById(no);

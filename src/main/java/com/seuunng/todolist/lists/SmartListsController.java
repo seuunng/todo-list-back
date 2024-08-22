@@ -30,8 +30,6 @@ public class SmartListsController {
 	@Autowired
 	private UsersRepository usersRepository;
 	@Autowired
-	private TasksRepository tasksRepository;
-	@Autowired
 	private SmartListsRepository smartListsRepository;
 
 	@GetMapping("/list")
