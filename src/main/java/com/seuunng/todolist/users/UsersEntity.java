@@ -79,8 +79,8 @@ public class UsersEntity implements UserDetails {
     @Builder.Default
     private Role role = Role.ROLE_USER;
     
-    @Column(name = "default_iist_no")
-    private Long defaultListNo;
+    @Column(name = "main_list_no")
+    private Long mainListNo;
     
     @JsonIgnore
     private Collection<? extends GrantedAuthority> authorities;

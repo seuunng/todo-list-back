@@ -26,7 +26,7 @@ public class LoadDatabase {
                 user.setEmail("guest@gmail.com");
                 user.setPassword(passwordEncoder.encode("guest123")); 
                 user.setNickname("게스트");
-                user.setDefaultListNo(1L);
+                user.setMainListNo(1L);
                 usersRepository.save(user);
 
                 ListsEntity defaultList = new ListsEntity();

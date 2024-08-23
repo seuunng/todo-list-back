@@ -64,8 +64,6 @@ public class ListsController {
 
 	@PutMapping("/list/{no}")
 	public ResponseEntity<ListsEntity> updateList(@PathVariable("no") Long no, @RequestBody ListsEntity newList) {
-		System.out.println("Received PUT request to update task with ID: " + no);
-		System.out.println("Request Body: " + newList);
 
 		return listsRepository.findById(no).map(list -> {
 			list.setTitle(newList.getTitle());
@@ -80,9 +78,8 @@ public class ListsController {
 	        } else {
 	            list.setIsDeleted(false);
 	        }
-
+	        
 			listsRepository.save(list);
-			System.out.println("Lists updated: " + list);
 
 			return ResponseEntity.ok(list);
 		}).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
